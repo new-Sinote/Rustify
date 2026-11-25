@@ -1,0 +1,43 @@
+# Build output
+target/
+node_modules/
+dist/
+**/src-tauri/gen/
+*.exe
+*.msi
+*.msix
+*.nsis.zip
+*.pdb
+
+# WebView2 / browser profiles. These contain cookies and live session data.
+bench/edge-profile/
+bench/edge-profile-*/
+bench/profile-shell/
+bench/profile-*/
+**/EBWebView/
+
+# Runtime state from the benchmark harness
+*.log
+*.pid
+bench/toggle.txt
+bench/policy.toggle.txt
+bench/flagtests/
+bench/soak*/
+
+# Captures that show the signed-in account or listening history
+bench/shots/
+bench/edge-shots/
+spike/shots/
+bench/chrome-window.png
+bench/*.png
+
+# Editor and OS noise
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local secrets
+.env
+.env.*

@@ -1,0 +1,140 @@
+﻿{
+    "summary":  {
+                    "label":  "soak_05m",
+                    "sampled_at":  "2026-11-25T18:13:57.3939037Z",
+                    "seconds":  15.4,
+                    "processes":  10,
+                    "ws_mb":  708,
+                    "private_ws_mb":  343.4,
+                    "private_commit_mb":  577.5,
+                    "pss_mb":  454.6,
+                    "shared_ws_mb":  364.6,
+                    "gpu_mb":  58.4,
+                    "cpu_pct_one_core":  4.86,
+                    "cpu_pct_all_cores":  0.3,
+                    "logical_cores":  16,
+                    "pss_note":  "PSS divides shared pages by their 3-bit share count; pages shared by more than 7 processes are over-attributed."
+                },
+    "processes":  [
+                      {
+                          "pid":  16392,
+                          "role":  "wryhost.exe",
+                          "ws_mb":  20,
+                          "private_ws_mb":  2.4,
+                          "private_commit_mb":  3.3,
+                          "pss_mb":  5.9,
+                          "shared_mb":  17.7,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  14632,
+                          "role":  "browser",
+                          "ws_mb":  90.7,
+                          "private_ws_mb":  28.9,
+                          "private_commit_mb":  46.8,
+                          "pss_mb":  45.8,
+                          "shared_mb":  61.8,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0.1,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  17616,
+                          "role":  "crashpad-handler",
+                          "ws_mb":  15.9,
+                          "private_ws_mb":  1.7,
+                          "private_commit_mb":  3,
+                          "pss_mb":  3.7,
+                          "shared_mb":  14.2,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  4844,
+                          "role":  "gpu-process",
+                          "ws_mb":  108,
+                          "private_ws_mb":  41.2,
+                          "private_commit_mb":  147.8,
+                          "pss_mb":  60.8,
+                          "shared_mb":  66.8,
+                          "gpu_mb":  58.4,
+                          "cpu_pct_one_core":  0.2,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  16476,
+                          "role":  "utility",
+                          "ws_mb":  32.1,
+                          "private_ws_mb":  6,
+                          "private_commit_mb":  14.4,
+                          "pss_mb":  14.8,
+                          "shared_mb":  26.2,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  16140,
+                          "role":  "utility",
+                          "ws_mb":  7.2,
+                          "private_ws_mb":  1.7,
+                          "private_commit_mb":  7.5,
+                          "pss_mb":  2.6,
+                          "shared_mb":  5.5,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  15376,
+                          "role":  "renderer",
+                          "ws_mb":  284,
+                          "private_ws_mb":  201.1,
+                          "private_commit_mb":  239.3,
+                          "pss_mb":  236,
+                          "shared_mb":  82.9,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  3.14,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  17652,
+                          "role":  "utility",
+                          "ws_mb":  45.7,
+                          "private_ws_mb":  30.2,
+                          "private_commit_mb":  68.6,
+                          "pss_mb":  39.6,
+                          "shared_mb":  15.5,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0.81,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  6500,
+                          "role":  "renderer",
+                          "ws_mb":  76.4,
+                          "private_ws_mb":  27,
+                          "private_commit_mb":  38.7,
+                          "pss_mb":  38.2,
+                          "shared_mb":  49.4,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0,
+                          "pss_error":  null
+                      },
+                      {
+                          "pid":  3148,
+                          "role":  "utility",
+                          "ws_mb":  28.1,
+                          "private_ws_mb":  3.3,
+                          "private_commit_mb":  8.1,
+                          "pss_mb":  7.3,
+                          "shared_mb":  24.8,
+                          "gpu_mb":  0,
+                          "cpu_pct_one_core":  0.61,
+                          "pss_error":  null
+                      }
+                  ]
+}
