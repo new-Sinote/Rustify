@@ -41,3 +41,6 @@ desktop.ini
 # Local secrets
 .env
 .env.*
+
+# Browser-extension payloads used only for research. Never ship third-party binaries.
+app/extensions/

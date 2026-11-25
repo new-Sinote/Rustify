@@ -19,6 +19,11 @@ use webview2_com::{
     IsDocumentPlayingAudioChangedEventHandler,
     Microsoft::Web::WebView2::Win32::{ICoreWebView2, ICoreWebView2_8},
 };
+#[cfg(feature = "ublock")]
+use webview2_com::{
+    Microsoft::Web::WebView2::Win32::{ICoreWebView2Profile7, ICoreWebView2_13},
+    ProfileAddBrowserExtensionCompletedHandler,
+};
 use windows::core::{w, HSTRING, Interface, PCWSTR};
 use windows::Win32::Foundation::{
     GetLastError, ERROR_ALREADY_EXISTS, HWND, LPARAM, LRESULT, RECT, WPARAM,
@@ -342,6 +347,15 @@ fn run() -> Result<(), Box<dyn Error>> {
         data_dir.display()
     ));
 
+    #[cfg(feature = "ublock")]
+    let ublock_ext = ublock_extension_path();
+    #[cfg(feature = "ublock")]
+    if let Some(path) = &ublock_ext {
+        log(format!("ublock_ext={}", path.display()));
+    } else {
+        log("ublock_ext=none");
+    }
+
     if !acquire_single_instance() {
         log("another instance is already running");
         return Ok(());
@@ -430,7 +444,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let proxy_load = proxy.clone();
     let proxy_popup = proxy.clone();
 
-    let builder = WebViewBuilder::new_with_web_context(&mut context)
+    #[allow(unused_mut)]
+    let mut builder = WebViewBuilder::new_with_web_context(&mut context)
         .with_url(&url)
         .with_theme(Theme::Dark)
         .with_background_color((12, 12, 12, 255))
@@ -490,6 +505,12 @@ fn run() -> Result<(), Box<dyn Error>> {
             false
         });
 
+    #[cfg(feature = "ublock")]
+    if ublock_ext.is_some() {
+        builder = builder.with_browser_extensions_enabled(true);
+        log("ublock_extensions_enabled");
+    }
+
     let logical = window
         .inner_size()
         .to_logical::<f64>(window.scale_factor());
@@ -502,6 +523,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     let webview = builder.with_bounds(main_rect).build_as_child(&window)?;
     log("main_webview_ready");
 
+    #[cfg(feature = "ublock")]
+    if let Some(extension) = &ublock_ext {
+        if let Err(error) = install_browser_extension(&webview, extension) {
+            log(format!("ublock_install_error={error}"));
+        }
+    }
+
     let bar_rect = chrome_rect(0.0, 0.0, logical.width.max(1.0), BAR_HEIGHT);
     let bar_html = if start_maximized {
         BAR_HTML.replacen("<body>", "<body class=\"maximized\">", 1)
@@ -509,7 +537,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         BAR_HTML.to_string()
     };
     let proxy_bar = proxy.clone();
-    let bar = WebViewBuilder::new_with_web_context(&mut context)
+    #[allow(unused_mut)]
+    let mut bar_builder = WebViewBuilder::new_with_web_context(&mut context)
         .with_html(bar_html)
         .with_bounds(bar_rect)
         .with_theme(Theme::Dark)
@@ -526,8 +555,15 @@ fn run() -> Result<(), Box<dyn Error>> {
             if let Some(event) = event {
                 let _ = proxy_bar.send_event(event);
             }
-        })
-        .build_as_child(&window)?;
+        });
+
+    #[cfg(feature = "ublock")]
+    if ublock_ext.is_some() {
+        bar_builder = bar_builder.with_environment(webview.environment());
+        log("ublock_chrome_environment_shared");
+    }
+
+    let bar = bar_builder.build_as_child(&window)?;
     log("chrome_bar_ready");
 
     if let Err(error) = watch_audio(&webview, proxy.clone()) {
@@ -784,6 +820,33 @@ fn read_playing(core: &ICoreWebView2_8) -> Option<bool> {
     let mut playing = windows::core::BOOL::default();
     unsafe { core.IsDocumentPlayingAudio(&mut playing) }.ok()?;
     Some(playing.as_bool())
+}
+
+#[cfg(feature = "ublock")]
+fn install_browser_extension(webview: &WebView, extension: &Path) -> Result<(), Box<dyn Error>> {
+    let profile = unsafe {
+        webview
+            .webview()
+            .cast::<ICoreWebView2_13>()?
+            .Profile()?
+            .cast::<ICoreWebView2Profile7>()?
+    };
+    let path = HSTRING::from(extension);
+    let handler =
+        ProfileAddBrowserExtensionCompletedHandler::create(Box::new(|result, _extension| {
+            match result {
+                Ok(()) => log("ublock_install_ok"),
+                Err(error) => log(format!(
+                    "ublock_install_failed code={:#x} message={}",
+                    error.code().0,
+                    error.message()
+                )),
+            }
+            Ok(())
+        }));
+    unsafe { profile.AddBrowserExtension(&path, &handler)? };
+    log("ublock_install_requested");
+    Ok(())
 }
 
 fn layout(window: &Window, main: &WebView, bar: Option<&WebView>) {
@@ -1112,12 +1175,29 @@ fn load_window_icon() -> Option<WindowIcon> {
     WindowIcon::from_rgba(rgba, width, height).ok()
 }
 
-#[cfg(feature = "bench")]
+#[cfg(any(feature = "bench", feature = "ublock"))]
 fn arg_value(args: &[String], name: &str) -> Option<String> {
     args.iter()
         .position(|arg| arg == name)
         .and_then(|index| args.get(index + 1))
         .cloned()
+}
+
+#[cfg(feature = "ublock")]
+fn ublock_extension_path() -> Option<PathBuf> {
+    let args: Vec<String> = std::env::args().collect();
+    let path = arg_value(&args, "--ublock-ext")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("RUSTIFY_UBLOCK_EXT").map(PathBuf::from))?;
+    if path.join("manifest.json").is_file() {
+        Some(path)
+    } else {
+        log(format!(
+            "ublock_ext_invalid path={} (manifest.json not found)",
+            path.display()
+        ));
+        None
+    }
 }
 
 fn init_log(path: &Path) {

@@ -29,6 +29,9 @@ embed-resource = "3.0.12"
 [features]
 # Test-only: exposes a local CDP port and the --url flag for the soak harness.
 bench = []
+# Research-only: loads a user-supplied unpacked browser extension. Off by default
+# because the shipping contract keeps Spotify's player and ads untouched.
+ublock = []
 
 [profile.release]
 opt-level = 2
