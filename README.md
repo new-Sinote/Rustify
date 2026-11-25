@@ -11,7 +11,7 @@ Rustify loads `https://open.spotify.com/` inside a Rust-controlled WebView2 wind
 - **Official player, unmodified playback path.** Spotify serves the page, the audio, the ads, and the DRM licence. Rustify does not proxy, rewrite, or re-stream any of it.
 - **Free accounts work, with ads intact.** Advertisements are not blocked, skipped, muted, or filtered.
 - **No ad blocking, no DRM circumvention, no audio extraction, no credential handling.**
-- **No page injection in the measured build.** The only injection in the tree is an opt-in benchmark flag that hides two Spotify upsell elements; it is off by default and outside the measured configuration.
+- **No page injection in the measured build.** The Phase 3 spike contains a documented one-shot DRM probe, and `bench/wryhost` has an opt-in flag that hides two upsell elements; both are outside the measured configuration and the shipping path.
 - **Windows 10/11 x64 only** for now. macOS and Linux are out of scope for V1.
 
 Rustify is an independent project. It is not affiliated with, endorsed by, or supported by Spotify AB.
