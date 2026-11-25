@@ -37,7 +37,7 @@ No Electron bundle. No tab strip. No extension zoo. No telemetry. No account tri
 
 - **Pause and forget.** After a confirmed pause, Rustify cycles WebView2 back to its low-memory target. In the hidden 10-minute run: **95 MB peak, 60 MB average**. For comparison, Edge with a visible paused window measured **754 MB** on the same machine.
 - **Native where it counts.** Spotify-style caption buttons, real resize edges, tray show/hide, close-to-tray, single-instance activation, remembered window position, and Windows media-session integration.
-- **The official player, not a clone.** Sign-in, playback, DRM, the queue, and ads stay with `open.spotify.com`. Free and Premium accounts both work.
+- **The official player, not a clone.** Sign-in, playback, DRM, the queue, and ads stay with `open.spotify.com`. Free accounts are verified; Premium accounts use the same official player.
 - **Nothing hiding in the background.** No telemetry. No proxy. No token extraction. No bundled Chromium. No background updater. MIT source.
 
 ## The numbers
@@ -60,7 +60,7 @@ The full per-sample data, method, and caveats are in the [0.2.0 certification re
 | Feature | What you get |
 |---|---|
 | **Player** | Official Spotify Web Player at `open.spotify.com` |
-| **Accounts** | Free and Premium |
+| **Accounts** | Free and Premium; free-tier sign-in and playback verified |
 | **Audio** | Spotify playback, Widevine, and ads — untouched |
 | **Window** | Spotify-style caption bar, native resize edges, DWM shadow |
 | **Tray** | Show, hide, reload, open data folder, about, quit; close hides to tray |
@@ -79,7 +79,7 @@ Rustify also hides the **Explore Premium** button and **Install App** link in th
 3. Windows SmartScreen will warn because the installer is unsigned. Choose **More info → Run anyway**.
 4. Launch **Rustify** and sign in at `open.spotify.com`.
 
-**Requirements:** Windows 10/11 x64, the Evergreen WebView2 Runtime (already present on current Windows builds), and a Spotify account.
+**Requirements:** Windows 10/11 x64 (certified on Windows 11 x64), the Evergreen WebView2 Runtime (already present on current Windows builds), and a Spotify account.
 
 **Uninstall:** Settings → Apps → Rustify. The uninstaller asks whether to delete your local profile; a silent uninstall keeps it.
 
