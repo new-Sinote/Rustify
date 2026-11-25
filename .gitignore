@@ -42,5 +42,7 @@ desktop.ini
 .env
 .env.*
 
-# Browser-extension payloads used only for research. Never ship third-party binaries.
+# Browser-extension payloads. Never commit third-party binaries; the installer
+# fetches and verifies them at build time.
 app/extensions/
+app/installer/ublock-payload/

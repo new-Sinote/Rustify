@@ -1,5 +1,6 @@
 param(
   [switch]$SkipBuild,
+  [switch]$SkipUblockFetch,
   [string]$Makensis = ""
 )
 
@@ -8,13 +9,17 @@ $appDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $appDir = (Resolve-Path $appDir).Path
 $distDir = Join-Path $appDir "dist"
 
+if (-not $SkipUblockFetch) {
+  & (Join-Path $appDir "installer\fetch-ublock.ps1")
+}
+
 if (-not $SkipBuild) {
   Push-Location $appDir
   try {
     # Cargo writes progress to stderr; Windows PowerShell 5.1 turns that into a
     # terminating error under ErrorActionPreference=Stop even on success.
     $ErrorActionPreference = "Continue"
-    cargo build --release
+    cargo build --release --features ublock
     $buildExit = $LASTEXITCODE
     $ErrorActionPreference = "Stop"
     if ($buildExit -ne 0) { throw "cargo build failed with exit code $buildExit" }
@@ -46,7 +51,7 @@ if (-not $Makensis -or -not (Test-Path $Makensis)) {
 }
 
 New-Item -ItemType Directory -Force -Path $distDir | Out-Null
-$setup = Join-Path $distDir "Rustify-0.2.0-x64-setup.exe"
+$setup = Join-Path $distDir "Rustify-0.3.0-x64-setup.exe"
 if (Test-Path $setup) { Remove-Item $setup -Force }
 
 Push-Location (Join-Path $appDir "installer")

@@ -2,7 +2,9 @@
 
 **Research branch:** `research/ubol-webview2`  
 **Date:** 2026-11-26  
-**Status:** Isolated experiment. Not merged to `main`, not included in the installer, not certified, and not recommended for the shipping product.
+**Status:** Published as an experimental pre-release (`v0.3.0-pre.1`). The default 0.2.0 build remains clean and certified.
+
+> **Release update (2026-11-26):** The owner approved shipping this as an experimental pre-release. `v0.3.0-pre.1` bundles the pinned uBOL payload and enables it by default; see [release notes](releases/v0.3.0-pre.1.md). The default 0.2.0 build and its certification are unchanged. The analysis below records why this stays out of the default build.
 
 ---
 
@@ -19,7 +21,7 @@ The runtime test was successful:
 - Spotify loaded, stayed signed in, and a short playback sample progressed normally.
 - No new browser engine, Tauri layer, or memory-lifecycle change was required.
 
-**It should still not ship.** The blockers are product, policy, licensing, and maintenance—not the WebView2 API:
+**It should not ship as the default build.** The blockers are product, policy, licensing, and maintenance—not the WebView2 API:
 
 1. **It reverses Rustify's contract.** Rustify promises the official player with ads untouched. uBOL exists to block ads and trackers; loading it is an intentional behavioral change, even if modern Spotify audio ads turn out to be server-side inserted.
 2. **It carries Spotify ToS and account risk.** Rustify's current positioning depends on not interfering with playback or ads. A bundled or silently enabled blocker removes that distinction.
@@ -28,7 +30,7 @@ The runtime test was successful:
 5. **The ad-blocking result is unproven and brittle.** uBOL's default rules contain a Spotify-specific rule that redirects `akamaized.net/audio/` media to a one-second no-op video. The current player fetched audio from `audio-fa-quic.spotifycdn.com` over Fetch, so that rule did not fire in this test. A future Spotify routing change could turn it into silent playback.
 6. **The 0.2.0 certification no longer applies.** Any build that loads a content blocker needs a fresh 35-minute playing soak, 10-minute hidden/paused run, CPU and startup gates, and an ad-row check.
 
-**Recommendation:** keep `main` clean. If this is pursued, keep it as a user-supplied, explicitly enabled experiment behind a non-default feature, with no bundled extension, no default profile changes, and no support claims. Do not present it as part of Rustify 0.2.0.
+**Recommendation:** keep the default build clean. The experimental release implements a bundled, explicitly chosen variant with no support claims. Do not present it as part of Rustify 0.2.0.
 
 ---
 
@@ -40,17 +42,18 @@ The prototype is deliberately small and isolated:
 - `app/src/main.rs`:
   - reads `--ublock-ext <path>` or `RUSTIFY_UBLOCK_EXT` (the flag wins if both are set);
   - validates that the folder contains `manifest.json`;
+  - falls back to `extensions\ublock` next to the executable;
   - enables WebView2 browser extensions only when a path is supplied;
   - installs the extension through `ICoreWebView2Profile7::AddBrowserExtension`;
   - logs the async install result;
   - makes the chrome WebView share the player's WebView2 environment.
-- No extension binary is committed. The user supplies an unpacked uBOL folder.
-- The default build does not enable extensions, does not parse the flag, and behaves exactly as 0.2.0 does.
+- No extension binary is committed. The installer build downloads the pinned official uBOL zip, verifies its SHA-256, and stages it for the NSIS payload. The app also accepts a user-supplied folder via the flag or environment variable.
+- A build without the `ublock` feature does not enable extensions or parse the flag. The default 0.2.0 release keeps that clean behavior.
 
 The essential calls:
 
 ```rust
-// Only when the ublock feature is enabled and a path was supplied.
+// Only when the ublock feature is enabled and an extension folder was found.
 builder = builder.with_browser_extensions_enabled(true);
 
 let profile = webview
@@ -238,13 +241,13 @@ uBOL did not add a persistent process in the hidden state, and it did not increa
 
 ### 1. Product contract and Spotify terms
 
-Rustify's current contract is explicit: official Spotify Web Player, ads play untouched, no ad blocking or filtering. uBOL is a content blocker. Even if it fails to remove Spotify's audio ads today, it blocks telemetry and display requests and is intended to block ads. Shipping it changes the product's identity and its Spotify ToS risk.
+Rustify's default 0.2.0 contract is explicit: official Spotify Web Player, ads play untouched, no ad blocking or filtering. uBOL is a content blocker. Even if it fails to remove Spotify's audio ads today, it blocks telemetry and display requests and is intended to block ads. The experimental 0.3.0-pre.1 build is the disclosed exception; it does not change the default contract, but it does change its Spotify ToS risk.
 
-The existing certification recorded ad rows during the 35-minute soak. Those rows are part of the evidence that the official playback path is untouched. A uBOL build invalidates that evidence.
+The existing certification recorded ad rows during the 35-minute soak. Those rows are part of the evidence that the official playback path is untouched. A uBOL build invalidates that evidence for the uBOL build; the 0.2.0 certification remains valid for 0.2.0.
 
 ### 2. GPL-3.0
 
-uBOL is GPL-3.0. Bundling its files in the MIT installer requires GPL compliance for those files: source availability, license text, and no additional restrictions. A user-supplied extension avoids redistribution, but a bundled or auto-downloaded extension needs a deliberate licensing review. Do not commit the uBOL payload to this repository.
+uBOL is GPL-3.0. Bundling its files in the MIT installer requires GPL compliance for those files: source availability, license text, and no additional restrictions. The experimental release includes the full licence and a source archive. A full legal review is still advisable before making it the default. Do not commit the uBOL payload to this repository; the installer fetches it from the official release.
 
 ### 3. No extension UI in WebView2
 
@@ -298,11 +301,11 @@ WebView2 supports unpacked extensions, but not every Chromium extension API or U
 
 | Option | What it means | Assessment |
 |---|---|---|
-| **Keep Rustify clean** | No extension loading; preserve the official player and 0.2.0 certification. | **Recommended.** Matches the product contract and avoids ToS/GPL work. |
-| **User-supplied experiment** | Keep the `ublock` feature off by default; require an explicit path; no bundling; no support claim. | Acceptable for research. Still changes behavior and carries Spotify ToS risk. |
-| **Full shipping integration** | Bundle or download uBOL, add settings UI, license compliance, re-certify, document the changed contract. | Not recommended. Large scope, legal exposure, brittle filtering, and a different product. |
+| **Keep Rustify clean** | No extension loading; preserve the official player and 0.2.0 certification. | **Default.** The 0.2.0 build remains the recommended download. |
+| **Experimental release** | Bundle a pinned uBOL payload, keep the default build clean, and label the result as uncertified. | **Shipped as `v0.3.0-pre.1`.** Changes behavior and carries Spotify ToS risk; no settings UI or re-certification. |
+| **Full shipping integration** | Make uBOL the default, add settings UI, re-certify, and treat the changed contract as the main product. | Not recommended. Large scope, legal exposure, brittle filtering, and a different product. |
 
-The branch implements the second option only. It is not wired into `main`, the installer, or the release notes.
+The 0.3.0-pre.1 release implements the experimental option with a bundled payload. The default 0.2.0 build remains the first option. It is not a full integration: no settings UI, no auto-update, and no re-certification.
 
 ---
 
@@ -372,11 +375,11 @@ A successful test looks like six enabled rulesets and a matched rule for the tra
 2. **Does `userScripts` work in WebView2?** The extension loaded and DNR worked; scriptlet injection was not verified.
 3. **Can the uBOL dashboard be hosted in a child WebView?** Not tested. WebView2 has no extension UI, so this would need a custom surface.
 4. **What is the release-build cost over 35 minutes of playback and 10 minutes hidden?** Not measured. The short debug samples are directional only.
-5. **Is GPL-3.0 compatible with the intended distribution model?** Requires legal review if uBOL is bundled or auto-downloaded.
+5. **Is GPL-3.0 compatible with the intended distribution model?** The experimental release includes the GPL licence and a source archive. A full legal review is still advisable before making it the default.
 6. **Would Spotify treat a blocker-loaded WebView as a modified client?** The account-risk answer is not knowable from the client side; the safe assumption is yes.
 
 ---
 
 ## Bottom line
 
-The engineering question is answered: **uBOL can be loaded into Rustify's current architecture with a small, feature-gated change.** The product question is not answered in uBOL's favor. Loading an ad blocker into a client whose promise is "the official player, ads untouched" is a product and policy change, not a performance optimization. The branch is useful as a reference and a warning: the integration works, but the compatibility, licensing, UI, and certification costs are real.
+The engineering question is answered: **uBOL can be loaded into Rustify's current architecture with a small, feature-gated change.** The product question is a deliberate owner decision: `v0.3.0-pre.1` ships it as an experimental pre-release, while the default 0.2.0 build keeps the ads-untouched contract. The compatibility, licensing, UI, and certification costs are real. Users who need the certified behavior should stay on 0.2.0.

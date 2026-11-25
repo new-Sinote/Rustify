@@ -11,7 +11,7 @@ SetCompressorDictSize 64
 !include "FileFunc.nsh"
 
 !define APP_NAME "Rustify"
-!define APP_VERSION "0.2.0"
+!define APP_VERSION "0.3.0"
 !define APP_PUBLISHER "Rustify contributors"
 !define APP_EXE "rustify.exe"
 !define APP_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\Rustify"
@@ -24,13 +24,13 @@ InstallDir "$LOCALAPPDATA\Programs\${APP_NAME}"
 InstallDirRegKey HKCU "Software\${APP_NAME}" "InstallDir"
 RequestExecutionLevel user
 
-VIProductVersion "0.2.0.0"
+VIProductVersion "0.3.0.0"
 VIAddVersionKey "ProductName" "${APP_NAME}"
 VIAddVersionKey "ProductVersion" "${APP_VERSION}"
 VIAddVersionKey "CompanyName" "${APP_PUBLISHER}"
 VIAddVersionKey "FileDescription" "${APP_NAME} installer"
-VIAddVersionKey "FileVersion" "0.2.0.0"
-VIAddVersionKey "LegalCopyright" "MIT Licence"
+VIAddVersionKey "FileVersion" "0.3.0.0"
+VIAddVersionKey "LegalCopyright" "MIT (Rustify); GPL-3.0 (uBlock Origin Lite)"
 
 !define MUI_ICON "..\assets\rustify.ico"
 !define MUI_UNICON "..\assets\rustify.ico"
@@ -42,6 +42,7 @@ VIAddVersionKey "LegalCopyright" "MIT Licence"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\..\LICENSE"
+!insertmacro MUI_PAGE_LICENSE "ublock-payload\LICENSE.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -66,6 +67,12 @@ Section "Rustify" SecMain
   install:
   File "..\target\release\${APP_EXE}"
   File "/oname=LICENSE.txt" "..\..\LICENSE"
+
+  SetOutPath "$INSTDIR\extensions\ublock"
+  File /r "ublock-payload\*.*"
+  SetOutPath "$INSTDIR"
+  File "/oname=UBOL_LICENSE.txt" "ublock-payload\LICENSE.txt"
+  File "/oname=UBOL_SOURCE.txt" "ublock-payload\SOURCE.txt"
 
   WriteUninstaller "$INSTDIR\uninstall.exe"
 
@@ -101,6 +108,9 @@ Section "Uninstall"
 
   Delete "$INSTDIR\${APP_EXE}"
   Delete "$INSTDIR\LICENSE.txt"
+  Delete "$INSTDIR\UBOL_LICENSE.txt"
+  Delete "$INSTDIR\UBOL_SOURCE.txt"
+  RMDir /r "$INSTDIR\extensions"
   Delete "$INSTDIR\uninstall.exe"
   RMDir "$INSTDIR"
 

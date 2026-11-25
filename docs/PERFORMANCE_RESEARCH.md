@@ -526,12 +526,14 @@ WebView2 has no supported ad-block API. The technical routes are:
 |---|---|
 | `WebResourceRequested` host filtering | Ads share Spotify CDN and playback infrastructure with tracks; filtering is brittle, detectable, and can break audio or DRM. It is also a product-level ad blocker. |
 | Script/CSS injection | Hides ad UI but does not stop audio ads; general injection is prohibited. |
-| Edge extension (uBlock Origin) | Not available to the WebView2 shell; extensions are prohibited. |
+| Edge extension (uBlock Origin) | Not available in the 0.2.0 WebView2 shell and prohibited by the product contract; revisited for the experimental 0.3.0 build. |
 | DNS/proxy/MITM filtering | Machine-wide, breaks other applications, weakens security; prohibited. |
 
 The free tier is ad-supported. Spotify's terms restrict modifying the client and circumventing restrictions, and modified or blocking setups carry account risk. Ad blocking also does not help the memory budgets: an extension or filter list is a few MB, while the page and Chromium dominate.
 
-**Decision:** ads play untouched, as specified. If the product requirements are ever changed to allow ad blocking or client modification, that work must be scoped as a separate experiment outside Rustify, with the ToS/account and breakage risks explicitly accepted; it is not part of 0.2.0.
+**Decision:** ads play untouched in 0.2.0, as specified. If the product requirements are ever changed to allow ad blocking or client modification, that work must be scoped as a separate experiment outside Rustify, with the ToS/account and breakage risks explicitly accepted; it is not part of 0.2.0.
+
+> **Update for 0.3.0-pre.1:** WebView2 now supports unpacked extensions, so the decision was revisited. The experimental uBOL build adds uBlock Origin Lite and is not covered by the 0.2.0 certification above. See [UBOL_INTEGRATION_RESEARCH.md](UBOL_INTEGRATION_RESEARCH.md) and the [0.3.0-pre.1 release notes](releases/v0.3.0-pre.1.md).
 
 ## Appendix B — Bench-only experiments
 

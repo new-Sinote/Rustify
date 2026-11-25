@@ -47,7 +47,7 @@ use wry::{
 };
 
 const APP_NAME: &str = "Rustify";
-const APP_VERSION: &str = "0.2.0";
+const APP_VERSION: &str = "0.3.0";
 const START_URL: &str = "https://open.spotify.com/";
 const BAR_HEIGHT: f64 = 40.0;
 const HYDRATE_TRIM: Duration = Duration::from_secs(30);
@@ -1186,18 +1186,23 @@ fn arg_value(args: &[String], name: &str) -> Option<String> {
 #[cfg(feature = "ublock")]
 fn ublock_extension_path() -> Option<PathBuf> {
     let args: Vec<String> = std::env::args().collect();
-    let path = arg_value(&args, "--ublock-ext")
+    let explicit = arg_value(&args, "--ublock-ext")
         .map(PathBuf::from)
-        .or_else(|| std::env::var_os("RUSTIFY_UBLOCK_EXT").map(PathBuf::from))?;
-    if path.join("manifest.json").is_file() {
-        Some(path)
-    } else {
+        .or_else(|| std::env::var_os("RUSTIFY_UBLOCK_EXT").map(PathBuf::from));
+    if let Some(path) = explicit {
+        if path.join("manifest.json").is_file() {
+            return Some(path);
+        }
         log(format!(
             "ublock_ext_invalid path={} (manifest.json not found)",
             path.display()
         ));
-        None
     }
+    let bundled = std::env::current_exe().ok().and_then(|exe| {
+        exe.parent()
+            .map(|dir| dir.join("extensions").join("ublock"))
+    })?;
+    bundled.join("manifest.json").is_file().then_some(bundled)
 }
 
 fn init_log(path: &Path) {
