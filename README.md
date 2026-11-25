@@ -67,7 +67,7 @@ The full per-sample data, method, and caveats are in the [0.2.0 certification re
 |---|---|
 | **Player** | Official Spotify Web Player at `open.spotify.com` |
 | **Accounts** | Free and Premium; free-tier sign-in and playback verified |
-| **Audio** | Spotify playback, Widevine, and ads — untouched in the default build |
+| **Audio** | Spotify playback and Widevine — untouched in the default build |
 | **Window** | Spotify-style caption bar, native resize edges, DWM shadow |
 | **Tray** | Show, hide, reload, open data folder, about, quit; close hides to tray |
 | **Windows** | SMTC media session, single instance, saved size/position |
@@ -125,7 +125,7 @@ flowchart LR
     bar["40 px chrome WebView<br/>caption buttons"]
     webview["Player WebView<br/>Evergreen runtime"]
     page["Official Spotify Web Player<br/>open.spotify.com"]
-    media["Spotify playback<br/>audio - ads - Widevine"]
+    media["Spotify playback<br/> - Widevine"]
     windows["Windows integration<br/>window - tray - SMTC"]
 
     shell --> bar
@@ -144,16 +144,16 @@ No. Rustify is an independent, unofficial host. It is not affiliated with, endor
 
 **Does it block ads?**  
 The default 0.2.0 build does not. Ads are served by Spotify and play normally, including on free accounts.  
-The experimental 0.3.0 uBOL build includes uBlock Origin Lite's default filtering. It blocks many trackers and page requests, but Spotify audio ads may still play, and ad behaviour is not guaranteed. It is not certified and carries additional Spotify ToS risk.
+The experimental 0.3.0 uBOL build includes uBlock Origin Lite's default filtering. It blocks many trackers and page requests, but Spotify audio ads may still play, and ad behaviour is not guaranteed. It is not certified and carries 
 
 **Will this get my account banned?**  
-The default build does not alter playback or ads, extract tokens, or use undocumented APIs. It hosts the official web player. The uBOL build does alter network requests, so treat its account risk as higher. Either way, Rustify is an unofficial client, so use remains subject to Spotify's terms.
+The default build does not alter playback, extract tokens, or use undocumented APIs. It hosts the official web player. The uBOL build does alter network requests, so treat its account risk as higher. Either way, Rustify is an unofficial client, so use remains subject to Spotify's terms.
 
 **Why does Task Manager show more memory?**  
 Task Manager usually shows each process separately and reports working set, which includes shared pages. The budgets use PSS across the whole process tree. See the [certification report](docs/CERTIFICATION_0.2.0.md) for the exact method.
 
 **Does it work with a free account?**  
-Yes. Free-account sign-in and playback were verified in the default build. Ads play normally there; the uBOL build may filter some requests but may still play audio ads.
+Yes. Free-account sign-in and playback were verified in the default build.; the uBOL build may filter some requests but may still play audio ads.
 
 **Why is the installer unsigned?**  
 Code signing is not set up yet, so SmartScreen warns about an unknown publisher. Verify the SHA-256 checksum attached to the release before running it.
@@ -251,8 +251,8 @@ The scripts were written for the original test machine and contain `C:\Rustify\.
 - **No Rustify telemetry.** The app adds no analytics, crash uploads, or tracking. In the default build, Spotify sees the same web-player traffic it would see in a browser; the uBOL build filters some requests.
 - **Local profile.** The WebView2 profile lives in `%LOCALAPPDATA%\Rustify\WebView2`; the diagnostic log is `%LOCALAPPDATA%\Rustify\rustify.log`.
 - **Nothing extracted.** Rustify does not handle your password, extract session tokens, proxy traffic, or re-stream audio.
-- **One cosmetic page rule in the default build.** A scoped stylesheet hides the two nav-bar upsells. It does not touch playback, ads, DRM, or requests. The uBOL build adds request filtering.
-- **Default build: ads are untouched.** Rustify is a host, not an ad blocker or a modified client. The experimental uBOL build is the disclosed exception.
+- **One cosmetic page rule in the default build.** A scoped stylesheet hides the two nav-bar upsells. It does not touch playback, DRM, or requests. The uBOL build adds request filtering.
+- **Default build: Rustify is a host, not an ad blocker or a modified client. The experimental uBOL build is the disclosed exception.
 
 Browser profiles, cookies, screenshots, raw soak/SMTC logs, and track or playlist metadata are excluded from this repository.
 
