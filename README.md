@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Spotify, without the browser tax.</strong><br>
-  A native Windows shell for the official Spotify Web Player.
+  A native Windows shell In Rust for the official Spotify Web Player.
 </p>
 
 <p align="center">
