@@ -16,14 +16,14 @@ Not accepted:
 - Ad blocking, skipping, muting, request filtering, DNS/proxy filtering, or any change that alters ad delivery.
 - DRM circumvention, audio extraction, re-streaming, or alternate audio sources.
 - Credential or token extraction, session scraping, or undocumented Spotify APIs.
-- Shipping page injection, extensions, or modified Spotify clients as part of the product.
+- General page injection, extensions, or modified Spotify clients. The product ships exactly one scoped cosmetic rule: a stylesheet that hides the `Explore Premium` button and `Install App` link in the nav bar. Expanding that rule, injecting into the player, or touching playback, ads, DRM, or network traffic is out of scope.
 - Security weakening, such as disabling site isolation or the GPU process, to win a benchmark.
 
-Benchmark-only flags may exist in the tree when they are clearly opt-in, off by default, and documented as outside the measured configuration. The `--hide-upsells` and `--custom-chrome` flags in `bench/wryhost` are examples.
+Benchmark-only flags may exist in the tree when they are clearly opt-in, off by default, and documented as outside the measured configuration. The `--hide-upsells` and `--custom-chrome` flags in `bench/wryhost` are examples; the shipping app in `app/` uses the same chrome and a scoped upsell rule as product defaults.
 
 ## Before opening a pull request
 
-1. Build the affected crate on Windows with the MSVC toolchain.
+1. Build the affected crate on Windows with the MSVC toolchain. The shipping shell is `app/Cargo.toml`; build it with `cargo build --release --manifest-path app/Cargo.toml`.
 2. If the change touches the shell or the memory policy, run the relevant harness in `bench/measure/` and include before/after numbers.
 3. Keep the measured build free of the benchmark-only flags unless the test is explicitly about them.
 4. Update the relevant document in `docs/` if a measured claim changes.

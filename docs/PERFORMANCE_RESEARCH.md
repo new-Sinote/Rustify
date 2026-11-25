@@ -4,6 +4,8 @@
 **Status:** Build not started. This report is the Phase 4 gate.  
 **Question:** can a Rust host for the official Spotify web player meet the Phase 4 budgets on Windows, and which architecture gets closest?
 
+> **Follow-up:** the shipping shell in `app/` implements the recommended `Low` lifecycle. Its certification run and results are in [CERTIFICATION_0.2.0.md](CERTIFICATION_0.2.0.md).
+
 ## 1. Executive summary
 
 A WebView2 host is the only architecture tested that comes close to the Phase 4 budgets, but the candidate one-shot `Low` policy does **not** certify the playing budget. The engine choice is settled; the memory policy is not.

@@ -1,0 +1,38 @@
+[package]
+name = "rustify"
+version = "0.2.0"
+edition = "2021"
+description = "Native Windows host for the official Spotify Web Player"
+license = "MIT"
+repository = "https://github.com/new-Sinote/Rustify"
+
+[dependencies]
+muda = "0.20.0"
+png = "0.17"
+tao = "0.37.3"
+tray-icon = "0.25.1"
+url = "2"
+webview2-com = "0.39.1"
+windows = { version = "0.62.2", features = [
+  "Win32_Foundation",
+  "Win32_Graphics_Dwm",
+  "Win32_Security",
+  "Win32_System_Threading",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+] }
+wry = "0.57.4"
+
+[build-dependencies]
+embed-resource = "3.0.12"
+
+[features]
+# Test-only: exposes a local CDP port and the --url flag for the soak harness.
+bench = []
+
+[profile.release]
+opt-level = 2
+lto = "thin"
+strip = true
+panic = "abort"
+codegen-units = 1
