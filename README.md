@@ -1,73 +1,104 @@
+<p align="center">
+  <img src="app/assets/icon-256.png" width="96" alt="Rustify icon">
+</p>
+
 <h1 align="center">Rustify</h1>
 
-<p align="center"><strong>A low-memory native Windows host for the official Spotify Web Player.</strong></p>
-
 <p align="center">
-  <a href="https://github.com/new-Sinote/Rustify/releases"><img alt="Pre-release" src="https://img.shields.io/github/v/release/new-Sinote/Rustify?include_prereleases&label=pre-release&color=1ed760"></a>
-  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-1ed760"></a>
-  <a href="#requirements"><img alt="Windows 10/11 x64" src="https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-0078D6"></a>
-  <img alt="Status" src="https://img.shields.io/badge/status-V1%20pre--release-orange">
+  <strong>Spotify, without the browser tax.</strong><br>
+  A native Windows shell for the official Spotify Web Player.
 </p>
 
 <p align="center">
-  <a href="https://github.com/new-Sinote/Rustify/releases/tag/v0.2.0-pre.1"><strong>Download v0.2.0-pre.1</strong></a>
-  ·
-  <a href="docs/CERTIFICATION_0.2.0.md">Certification report</a>
-  ·
-  <a href="#build-from-source">Build from source</a>
+  <a href="https://github.com/new-Sinote/Rustify/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/new-Sinote/Rustify?label=latest&color=1ed760"></a>
+  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-1ed760"></a>
+  <img alt="Windows 10/11 x64" src="https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-0078D6">
+  <img alt="No telemetry" src="https://img.shields.io/badge/telemetry-none-1ed760">
+</p>
+
+<p align="center">
+  <a href="https://github.com/new-Sinote/Rustify/releases/latest"><img alt="Download Rustify for Windows" src="https://img.shields.io/badge/Download_for_Windows-v0.2.0--pre.1-1ed760?style=for-the-badge"></a>
+  <a href="docs/CERTIFICATION_0.2.0.md"><img alt="Read the certification report" src="https://img.shields.io/badge/Read_the-certification-181717?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+  <sub>535 KB installer · Windows 10/11 x64 · free accounts welcome · no telemetry</sub>
 </p>
 
 ---
 
-Rustify loads `https://open.spotify.com/` inside a Rust-controlled WebView2 window. The official player keeps ownership of sign-in, playback, DRM, the queue, and advertising. Rustify supplies the Windows shell around it: a native window with Spotify-style caption buttons, tray behaviour, single-instance activation, window-state persistence, and a measured memory lifecycle.
+**Pause the music. Get the RAM back.** The 10-minute hidden/paused gate peaked at **95 MB** for the entire WebView2 process tree and averaged **60 MB**. The 35-minute playing soak peaked at **263 MB** and averaged **227 MB** — every sample well inside the 400 MB budget.
 
-It is an independent project, not a Spotify client. It is not affiliated with, endorsed by, or supported by Spotify AB.
+That is the point of Rustify. It is not another browser with a Spotify tab. It is a small, native Windows shell around the **official** player, with a memory lifecycle that actually returns memory when you stop listening.
 
-## Download the pre-release
+No Electron bundle. No tab strip. No extension zoo. No telemetry. No account tricks.
 
-The current build is **[v0.2.0-pre.1](https://github.com/new-Sinote/Rustify/releases/tag/v0.2.0-pre.1)**.
+## Why it is worth switching
 
-- **Windows 10/11 x64** with the WebView2 Runtime.
-- **Spotify account required.** Free accounts work; advertisements play normally.
-- The installer is **unsigned**. Windows SmartScreen will warn on first run: choose **More info -> Run anyway**.
-- Installs per-user, no administrator prompt. Uninstall from **Settings -> Apps**.
-- [Release notes](docs/releases/v0.2.0-pre.1.md) and [certification report](docs/CERTIFICATION_0.2.0.md).
+- **Pause and forget.** After a confirmed pause, Rustify cycles WebView2 back to its low-memory target. In the hidden 10-minute run: **95 MB peak, 60 MB average**. For comparison, Edge with a visible paused window measured **754 MB** on the same machine.
+- **Native where it counts.** Spotify-style caption buttons, real resize edges, tray show/hide, close-to-tray, single-instance activation, remembered window position, and Windows media-session integration.
+- **The official player, not a clone.** Sign-in, playback, DRM, the queue, and ads stay with `open.spotify.com`. Free and Premium accounts both work.
+- **Nothing hiding in the background.** No telemetry. No proxy. No token extraction. No bundled Chromium. No background updater. MIT source.
 
-> **This is a pre-release, not a signed auto-updating product.** It carries the Phase 4 memory lifecycle and passed the playing, paused, CPU, and startup gates. Code signing and auto-update are not included.
+## The numbers
 
-## Status
+Measured as **PSS for the complete process tree** on one Windows 11 x64 machine. Lower is better. This is not Task Manager's per-process working set.
 
-| Phase | State |
+| Whole-tree PSS | **Rustify 0.2.0** | Spotify desktop | Spotify in Edge |
+|---|---:|---:|---:|
+| **Paused** (Rustify hidden) | **95.1 MB peak** / 60.0 MB average | 754.6 MB | 754.2 MB |
+| **Playing, visible** | **263.3 MB peak** / 226.9 MB average | 773.4 MB | 732.7 MB |
+
+Rustify's paused row is the hidden/tray gate; the desktop and Edge paused baselines were measured with visible windows. Hidden windows can release GPU memory, so the paused comparison is directional rather than an identical-state benchmark.
+
+In these tests, Rustify's hidden paused footprint was about **one-eighth of Edge's visible paused footprint**, and its playing footprint was about **one-third of the desktop client's**. Both are full products with their own memory strategies; the comparison is about the same Spotify page, not about missing features. Rustify gets there with the player lifecycle, not by removing Spotify functionality.
+
+The full per-sample data, method, and caveats are in the [0.2.0 certification report](docs/CERTIFICATION_0.2.0.md). The research behind it is in [Performance Research](docs/PERFORMANCE_RESEARCH.md).
+
+## What you get
+
+| | |
 |---|---|
-| Phase 0-2 - feasibility, DRM, scope | Complete |
-| Phase 3 - Windows DRM / background-playback spike | Complete; superseded by 0.2.0 |
-| Phase 4 - performance research | Complete; [report published](docs/PERFORMANCE_RESEARCH.md) |
-| V1 - production shell | Built; v0.2.0-pre.1 passed the release gates and is published |
+| **Player** | Official Spotify Web Player at `open.spotify.com` |
+| **Accounts** | Free and Premium |
+| **Audio** | Spotify playback, Widevine, and ads — untouched |
+| **Window** | Spotify-style caption bar, native resize edges, DWM shadow |
+| **Tray** | Show, hide, reload, open data folder, about, quit; close hides to tray |
+| **Windows** | SMTC media session, single instance, saved size/position |
+| **Network** | Spotify and the Cloudflare challenge only; popups and downloads blocked |
+| **Privacy** | No telemetry, no proxy, no credential or token extraction |
+| **Install** | 535 KB per-user installer; no administrator prompt |
+| **Updates** | Manual for now; no auto-update |
 
-## Which build should I use?
+Rustify also hides the **Explore Premium** button and **Install App** link in the nav bar with one scoped stylesheet. That is the only page change. It is cosmetic, disclosed, and does not touch playback, ads, DRM, or network traffic.
 
-| Goal | Build | What you get |
-|---|---|---|
-| Try the app today | **v0.2.0-pre.1** | Low-memory lifecycle, custom caption bar, tray, SMTC, navigation allowlist, official playback. |
-| Read the certification method and numbers | **v0.2.0-pre.1 report** | Soak, paused/hidden run, startup, and known limitations. |
-| Inspect the Phase 4 baseline | **`bench/wryhost`** | The original measurement host: `Low`, `--memory-low`, `--toggle-file`, CDP. |
-| See the old Tauri spike | **v0.1.0-pre.1** | Historical. No memory policy; do not judge 0.2.0 memory by it. |
+## Install in about a minute
 
-## Performance
+1. **[Download the latest release](https://github.com/new-Sinote/Rustify/releases/latest)** — `Rustify-0.2.0-x64-setup.exe`.
+2. Run it. It installs per-user, with no administrator prompt.
+3. Windows SmartScreen will warn because the installer is unsigned. Choose **More info → Run anyway**.
+4. Launch **Rustify** and sign in at `open.spotify.com`.
 
-Measured PSS for the complete WebView2 process tree on one Windows 11 machine. Full method and per-process tables are in [docs/PERFORMANCE_RESEARCH.md](docs/PERFORMANCE_RESEARCH.md) and [docs/CERTIFICATION_0.2.0.md](docs/CERTIFICATION_0.2.0.md).
+**Requirements:** Windows 10/11 x64, the Evergreen WebView2 Runtime (already present on current Windows builds), and a Spotify account.
 
-| Host | Paused | Playing | Notes |
-|---|---:|---:|---|
-| Official Spotify desktop client | 754.6 MB | 773.4 MB | CEF UI, native audio; not embeddable |
-| Spotify Web Player in an Edge `--app` window | 754.2 MB | 732.7 MB | 12 processes; fails both budgets |
-| Phase 3 Tauri spike - v0.1.0-pre.1 | 558.0 MB | 594.8 MB | No memory policy |
-| **Rustify 0.2.0 - shipping shell** | 95.1 MB peak / 60.0 MB mean | 263.3 MB peak / 226.9 MB mean | `Low` lifecycle; 35-minute soak + hidden/paused run |
-| Bare wry + WebView2 bench | 60.5 MB after re-trim | 206 MB after re-trim | The Phase 4 baseline |
+**Uninstall:** Settings → Apps → Rustify. The uninstaller asks whether to delete your local profile; a silent uninstall keeps it.
 
-`Low` is a one-shot trim request, not a cap. The shipping shell re-applies it after hydration, after a confirmed pause, every 120 seconds (including while paused), and after short track/ad gaps. The 35-minute soak samples the result every five minutes.
+> **Before you download:** Rustify is unsigned, has no auto-update, and is Windows-only. Ads play normally. If those are deal-breakers, this build is not for you yet.
 
-## Architecture
+## Proof, not promises
+
+| Release gate | Target | Rustify 0.2.0 |
+|---|---:|---|
+| Paused PSS, 10-minute hidden run | ≤ 300 MB | **95.1 MB peak** |
+| Playing PSS, every 5-minute soak sample | ≤ 400 MB | **263.3 MB peak** |
+| Paused CPU | ≤ 1% of one core | **0.32% mean**; 0.24–0.39% sustained |
+| Idle CPU | ≤ 0.5% of one core | **0.24–0.39%** sustained |
+| Window ready | ≤ 500 ms | **272 ms** warm; 271 ms fresh profile |
+| Installer | — | **534,512 bytes** |
+
+One 10-second CPU sample touched 1.05%; two 60-second steady-state windows afterward measured 0.24% and 0.39%. The certification report keeps that transient visible rather than hiding it. The first launch on a machine where the WebView2 runtime had never been initialized once measured 652 ms; normal starts and fresh-profile starts measured 271–288 ms.
+
+## How it works
 
 ```mermaid
 flowchart LR
@@ -85,54 +116,36 @@ flowchart LR
     shell --> windows
 ```
 
-The shell never proxies Spotify traffic, rewrites the page, or touches the audio path. The only page modification is a scoped stylesheet that hides two nav-bar upsell elements; it is disclosed under [Scope and non-goals](#scope-and-non-goals).
+The shell never proxies Spotify traffic or touches the audio path. Apart from the disclosed nav-bar rule, the page runs as Spotify ships it. `MemoryUsageTargetLevel.Low` is applied after hydration, after a confirmed pause, every 120 seconds, and after short track/ad gaps. The result is a player that behaves like a normal Windows app instead of a browser tab that never gives memory back.
 
-## What works
+## FAQ
 
-| Area | State |
-|---|---|
-| Official web player | Runs unmodified apart from the scoped upsell CSS |
-| Free accounts | Sign-in and playback verified |
-| Advertisements | Play to completion; nothing blocks, skips, or mutes them |
-| Widevine playback | Works on the tested Evergreen runtime; no probe or override in the shipping build |
-| Background playback | Continues when the window is minimized or hidden |
-| Tray | Show / Hide to tray / Reload / Open data folder / About / Quit; close button hides to tray |
-| SMTC | Playback status and track metadata reported to Windows |
-| Navigation allowlist | Top-level navigation limited to Spotify and the Cloudflare challenge |
-| Custom chrome | Spotify-style minimize / maximize / restore / close; native resize edges |
-| Window state | Size, position, and maximized state persist across launches |
-| Single instance | A second launch activates the existing window |
-| Nav-bar upsells | `Explore Premium` and `Install App` hidden by CSS |
-| Memory policy | Hydration, pause, periodic, and post-gap `Low` trims |
-| Auto-update | Not yet |
-| Code signing | Not yet |
+**Is this an official Spotify app?**  
+No. Rustify is an independent, unofficial host. It is not affiliated with, endorsed by, or supported by Spotify AB.
 
-## Requirements
+**Does it block ads?**  
+No. Ads are served by Spotify and play normally, including on free accounts. Rustify does not block, skip, mute, filter, proxy, or re-stream them. That is deliberate: the official player and its DRM path stay intact.
 
-**To run the pre-release**
+**Will this get my account banned?**  
+Rustify does not alter playback or ads, extract tokens, or use undocumented APIs. It hosts the official web player. It is still an unofficial client, so use remains subject to Spotify's terms.
 
-- Windows 10/11 x64
-- Microsoft Edge WebView2 Runtime (Evergreen; already installed on current Windows builds)
-- A Spotify account
+**Why does Task Manager show more memory?**  
+Task Manager usually shows each process separately and reports working set, which includes shared pages. The budgets use PSS across the whole process tree. See the [certification report](docs/CERTIFICATION_0.2.0.md) for the exact method.
 
-**To build from source**
+**Does it work with a free account?**  
+Yes. Free-account sign-in and playback were verified. Ads play normally.
 
-- Rust stable with the MSVC toolchain
-- NSIS 3 (optional, for the installer)
-- Node.js 20+ and npm only for the historical Tauri spike
+**Why is the installer unsigned?**  
+Code signing is not set up yet, so SmartScreen warns about an unknown publisher. Verify the SHA-256 checksum attached to the release before running it.
 
-## Install the pre-release
+**Does it work on macOS or Linux?**  
+No. Windows 10/11 x64 only.
 
-1. Open **[Releases](https://github.com/new-Sinote/Rustify/releases)** and download `Rustify-0.2.0-x64-setup.exe`.
-2. Run the installer. It installs per-user; no administrator prompt is required.
-3. Windows SmartScreen will warn because the binary is unsigned. Choose **More info -> Run anyway**.
-4. Launch **Rustify** and sign in at `open.spotify.com`.
+**Can I use Spicetify with it?**  
+No. Spicetify patches the installed Spotify desktop client. Rustify hosts the web player; there is nothing to patch.
 
-The app installs to `%LOCALAPPDATA%\Programs\Rustify`. The WebView2 profile lives in `%LOCALAPPDATA%\Rustify\WebView2`; the diagnostic log is `%LOCALAPPDATA%\Rustify\rustify.log`.
-
-Uninstall from **Settings -> Apps -> Rustify**. The uninstaller asks whether to delete the local profile and settings; a silent uninstall keeps them. The old Phase 3 spike is a separate app (`Rustify Spike`); uninstall it if you no longer need it.
-
-## Build from source
+<details>
+<summary><strong>Build from source, repository layout, and the benchmark harness</strong></summary>
 
 ### Shipping shell
 
@@ -142,7 +155,7 @@ cargo build --release
 .\target\release\rustify.exe
 ```
 
-The shipping binary has no CDP port, no `--url`, `--profile`, or `--log` flags, and no development tools. Those are compiled only with the `bench` feature used by the harness:
+The shipping binary has no CDP port and no `--url`, `--profile`, `--log`, or test flags. Those are compiled only with the `bench` feature:
 
 ```powershell
 cargo build --release --features bench
@@ -157,7 +170,7 @@ cargo build --release --features bench
 
 The setup and `SHA256SUMS.txt` land in `app\dist\`. The script needs `makensis.exe` (NSIS 3+). It builds the per-user installer, creates Start Menu and desktop shortcuts, and registers the uninstaller under `HKCU`.
 
-### Bench host - the Phase 4 baseline
+### Bench host
 
 ```powershell
 cd bench\wryhost
@@ -165,23 +178,11 @@ cargo build --release
 .\target\release\wryhost.exe --url https://open.spotify.com/ --data-dir "$env:LOCALAPPDATA\RustifyBench"
 ```
 
-Useful benchmark flags:
+Useful benchmark flags: `--memory-low`, `--cdp <port>`, `--toggle-file <path>`, `--browser-args "<args>"`, `--hide-on-close`, `--hide-upsells`, and `--custom-chrome`.
 
-| Flag | Purpose |
-|---|---|
-| `--memory-low` | Set `MemoryUsageTargetLevel.Low` at launch |
-| `--cdp <port>` | Enable the Chrome DevTools Protocol on `127.0.0.1:<port>` |
-| `--toggle-file <path>` | Watch a file for `low` / `normal` and apply the memory level |
-| `--browser-args "<args>"` | Pass additional Chromium/WebView2 arguments |
-| `--hide-on-close` | Hide instead of exiting when the window is closed |
-| `--hide-upsells` | Hide the nav-bar upgrade button and download link |
-| `--custom-chrome` | Frameless window plus a second WebView title bar |
+### Repository layout
 
-The last two are experiments in the benchmark host. The shipping app uses the same chrome and a scoped upsell rule as product defaults.
-
-## Repository layout
-
-```
+```text
 app/                Shipping shell: wry + tao + WebView2, installer, assets.
   src/main.rs       Window, chrome, tray, allowlist, memory policy.
   installer/        NSIS per-user installer.
@@ -192,7 +193,6 @@ bench/
   results/          Sanitized per-sample memory data from the Phase 4 soaks.
 spike/
   src-tauri/        Phase 3 Tauri 2 spike. Superseded; kept for the record.
-  ui/               Unused local placeholder page required by the Tauri config.
 docs/
   CERTIFICATION_0.2.0.md
   PERFORMANCE_RESEARCH.md
@@ -201,70 +201,33 @@ docs/
   releases/         Release notes for published builds.
 ```
 
-## Measurement harness
+### Measurement harness
 
 `bench/measure/` contains the scripts used for the reports:
 
-- `tree-metrics.ps1` - PSS, working set, private commit, GPU memory, and CPU for a process tree.
-- `cdp-metrics.mjs` - JS heap, DOM counters, and page state over the DevTools Protocol.
-- `smtc.ps1` - Windows media-session status and position.
-- `soak.ps1` - 35-minute playing soak with 5-minute samples.
-- `hidden-soak.ps1` - 10-minute paused/hidden run at 1-minute samples.
-- `cdp-chrome-check.mjs` - verifies the caption bar and the hidden upsell elements.
-- `cdp-pause.mjs` - pauses the player before the hidden/paused run.
-- `cdp-*.mjs` - navigation, playback, and click helpers for the benchmark page.
+- `tree-metrics.ps1` — PSS, working set, private commit, GPU memory, and CPU for a process tree.
+- `cdp-metrics.mjs` — JS heap, DOM counters, and page state over the DevTools Protocol.
+- `smtc.ps1` — Windows media-session status and position.
+- `soak.ps1` — 35-minute playing soak with 5-minute samples.
+- `hidden-soak.ps1` — 10-minute paused/hidden run with 1-minute samples.
+- `cdp-chrome-check.mjs` — verifies the caption bar and the hidden upsell elements.
+- `cdp-pause.mjs` — pauses the player before the hidden/paused run.
 
-The scripts were written for the original test machine and contain `C:\Rustify\...` paths. Adjust those paths (or run from `C:\Rustify`) before using them elsewhere. They measure; they do not modify the Spotify page or the audio path.
+The scripts were written for the original test machine and contain `C:\Rustify\...` paths. Adjust those paths (or run from `C:\Rustify`) before using them elsewhere. They measure; they do not modify the Spotify page or audio path.
 
-## Privacy and data
+</details>
 
-- Rustify has **no telemetry**.
-- The WebView2 profile lives in `%LOCALAPPDATA%\Rustify\WebView2`; the diagnostic log is `%LOCALAPPDATA%\Rustify\rustify.log`.
-- Spotify receives the same web-player traffic it would receive in a browser. Nothing is proxied or re-streamed.
-- Browser profiles, cookies, session storage, account screenshots, raw SMTC/soak logs, and track/playlist metadata are **not** published in this repository. `.gitignore` covers profiles, logs, screenshots, soak output, and build artifacts.
+## Privacy and scope
 
-## Scope and non-goals
+- **No Rustify telemetry.** The app adds no analytics, crash uploads, or tracking. Spotify sees the same web-player traffic it would see in a browser.
+- **Local profile.** The WebView2 profile lives in `%LOCALAPPDATA%\Rustify\WebView2`; the diagnostic log is `%LOCALAPPDATA%\Rustify\rustify.log`.
+- **Nothing extracted.** Rustify does not handle your password, extract session tokens, proxy traffic, or re-stream audio.
+- **One cosmetic page rule.** A scoped stylesheet hides the two nav-bar upsells. It does not touch playback, ads, DRM, or requests.
+- **Ads are untouched.** Rustify is a host, not an ad blocker or a modified client.
 
-Rustify deliberately does **not**:
-
-- block, skip, mute, filter, or alter advertisements;
-- circumvent DRM, extract audio, or use alternative audio sources;
-- extract credentials or session tokens;
-- proxy, MITM, or rewrite Spotify traffic;
-- use undocumented Spotify APIs or modified clients;
-- inject general page scripts, extensions, or player modifications.
-
-The one disclosed page change is a stylesheet that hides `Explore Premium` and `Install App` in the nav bar. It does not touch playback, ads, DRM, network traffic, or the player state.
-
-The Phase 3 spike includes a documented one-shot DRM diagnostic probe. The shipping app does not. The benchmark host includes opt-in experiment flags. Neither is part of the measured shipping configuration.
+Browser profiles, cookies, screenshots, raw soak/SMTC logs, and track or playlist metadata are excluded from this repository.
 
 Rustify is not affiliated with Spotify AB. "Spotify" and the Spotify logo are trademarks of Spotify AB. The MIT licence covers this repository's code, not Spotify's trademarks, content, or services. Using Rustify requires a Spotify account and remains subject to Spotify's terms.
-
-## FAQ
-
-**Is this V1?**  
-It is the V1 pre-release. It carries the measured memory lifecycle, and the release gates passed: a 35-minute playing soak with a 263.3 MB maximum PSS and a 10-minute hidden/paused run with a 95.1 MB maximum, plus CPU and startup checks. Full method and numbers: [docs/CERTIFICATION_0.2.0.md](docs/CERTIFICATION_0.2.0.md). It is not code-signed and has no auto-update.
-
-**Does it block ads?**  
-No. Ads play normally, including on free accounts.
-
-**Why does Task Manager show more than the PSS numbers?**  
-Task Manager usually shows each process separately and its working set, which includes shared pages. The budget is PSS for the whole process tree, measured by `bench/measure/tree-metrics.ps1`. See the certification report for the per-sample numbers.
-
-**Why does Windows warn about the installer?**  
-The binary is unsigned. SmartScreen warns for unknown publishers. Verify the SHA-256 checksum attached to the release if you want to confirm the download.
-
-**Why does memory run higher for the first minute?**  
-The player is hydrating. The hydration trim is applied 30 seconds after page load, and WebView2 reclaims the memory asynchronously. The playing soak starts from the hydrated state, as in the Phase 4 method.
-
-**Does it work on macOS or Linux?**  
-No. It is Windows 10/11 x64 only.
-
-**Can I use Spicetify with it?**  
-No. Spicetify patches the installed Spotify desktop client's `xpui.spa` bundle. Rustify hosts `open.spotify.com` in WebView2; there is nothing to patch.
-
-**Does it collect my data?**  
-No telemetry. The local WebView2 profile stores your Spotify session, as a browser would. Spotify sees normal web-player traffic.
 
 ## Contributing
 
