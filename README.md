@@ -57,7 +57,7 @@ The full per-sample data, method, and caveats are in the [0.2.0 certification re
 
 ## What you get
 
-| | |
+| Feature | What you get |
 |---|---|
 | **Player** | Official Spotify Web Player at `open.spotify.com` |
 | **Accounts** | Free and Premium |
