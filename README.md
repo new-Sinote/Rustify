@@ -82,14 +82,16 @@ The stable build also hides the **Explore Premium** button and **Install App** l
 
 Adblocking is now a first-class project requirement. The work lives on the `feature/adblocking` branch; no adblocking build has been released as stable.
 
-The first proof of concept is a native audio-ad mute fallback:
+The first proof of concept combines a native audio-ad mute fallback with an opt-in ad-discovery test mode:
 
 - Detects the web player's advertisement title through documented WebView2 events.
 - Mutes the player WebView during the ad and unmutes when the title changes back.
-- Resets on page load and has a 120-second watchdog so a detection bug cannot leave the app silent.
+- Resets on page load. A bounded watchdog rechecks at 120 seconds, extends every 30 seconds while an ad is still detected, and fails open at 15 minutes, so a detection bug cannot leave the app silent.
+- Adds an opt-in **Automatic Ad Discovery** panel (`AD` button) that skips confirmed normal tracks at a configurable rate until an ad appears. It stops skipping immediately on an ad, an unknown title, or a pause, and fails closed on a rejected skip or the configured skip limit. It never starts automatically.
+- Uses documented Windows media-session controls for test-mode skips. The `adblock` build enables Chromium's `MediaSessionService` so WebView2 publishes a session; session selection requires exactly one WebView2 session and a title match, and fails closed otherwise.
 - Does not block DRM traffic, extract audio, or inject ad-detection JavaScript.
 
-The branch keeps the uBOL network-filtering experiment as a candidate layer for display and tracker requests. uBOL is GPL-3.0 and needs licence and source compliance if it is distributed. See the [ADR](docs/ADR-0001-adblocking-direction.md) and [research](docs/ADBLOCKING_RESEARCH.md).
+The branch keeps the uBOL network-filtering experiment as a candidate layer for display and tracker requests. uBOL is GPL-3.0 and needs licence and source compliance if it is distributed. See the [ADR](docs/ADR-0001-adblocking-direction.md), [research](docs/ADBLOCKING_RESEARCH.md), and [validation report](docs/ADBLOCKING_VALIDATION_REPORT.md).
 
 The earlier uBOL build remains available:
 
@@ -148,7 +150,7 @@ No. Rustify is an independent, unofficial host. It is not affiliated with, endor
 
 **Does it block ads?**  
 The stable 0.2.0 build does not. Ads are served by Spotify and play normally, including on free accounts.
-Adblocking is now a first-class development requirement on `feature/adblocking`. The first proof of concept detects audio ad breaks through the WebView2 document title and mutes the player until the ad ends. It does not yet block ad delivery, and it is not released or certified. Network filtering through uBOL and native request filtering remain under evaluation. Ad behaviour is not guaranteed, and any adblocking build carries additional Spotify ToS risk.
+Adblocking is now a first-class development requirement on `feature/adblocking`. The current proof of concept detects audio ad breaks through the WebView2 document title and mutes the player until the ad ends. An opt-in Automatic Ad Discovery test mode can skip confirmed normal tracks until an ad appears; it is never active by default and stops on unknown titles or player errors. It does not yet block ad delivery, and it is not released or certified. Network filtering through uBOL and native request filtering remain under evaluation. Ad behaviour is not guaranteed, and any adblocking build carries additional Spotify ToS risk.
 
 **Will this get my account banned?**  
 The stable build does not alter playback or ads, extract tokens, or use undocumented APIs. It hosts the official web player. Adblocking builds deliberately change ad behaviour and network requests, so treat their account risk as higher. Either way, Rustify is an unofficial client, so use remains subject to Spotify's terms.
@@ -157,7 +159,7 @@ The stable build does not alter playback or ads, extract tokens, or use undocume
 Task Manager usually shows each process separately and reports working set, which includes shared pages. The budgets use PSS across the whole process tree. See the [certification report](docs/CERTIFICATION_0.2.0.md) for the exact method.
 
 **Does it work with a free account?**  
-Yes. Free-account sign-in and playback were verified in the stable build. Ads play normally there. The adblocking branch is being tested against a free account; see the [research notes](docs/ADBLOCKING_RESEARCH.md) for current results.
+Yes. Free-account sign-in and playback were verified in the stable build. Ads play normally there. Real-account testing of the adblocking branch is blocked pending an approved temporary Free account; see the [validation report](docs/ADBLOCKING_VALIDATION_REPORT.md).
 
 **Why is the installer unsigned?**  
 Code signing is not set up yet, so SmartScreen warns about an unknown publisher. Verify the SHA-256 checksum attached to the release before running it.
@@ -194,11 +196,13 @@ cargo build --release --features ublock
 
 It loads `extensions\ublock` next to the executable, or a folder supplied with `--ublock-ext` / `RUSTIFY_UBLOCK_EXT`.
 
-To build the first adblocking proof of concept (native ad detection and mute fallback):
+To build the first adblocking proof of concept (native ad detection, mute fallback, and the opt-in discovery test mode):
 
 ```powershell
 cargo build --release --features adblock
 ```
+
+The `AD` button in the title bar opens the test panel. Discovery is off by default and must be started explicitly. Test-mode skips use the documented Windows media-session API, so the `adblock` build passes `--enable-features=MediaSessionService` to WebView2; this is a scoped change to media-session visibility in that build only.
 
 Combine it with the uBOL network-filtering layer:
 
@@ -206,7 +210,7 @@ Combine it with the uBOL network-filtering layer:
 cargo build --release --features "ublock adblock"
 ```
 
-The adblocking feature is experimental, is not part of the stable release, and is not certified. It logs ad-state transitions only; it does not log track titles.
+The adblocking feature is experimental, is not part of the stable release, and is not certified. It logs state transitions, counters, and failure reasons; it does not log track titles. Real-account validation is still blocked pending an approved temporary Spotify Free account; see the [real-account test procedure](docs/ADBLOCKING_REAL_ACCOUNT_TEST.md) and [validation report](docs/ADBLOCKING_VALIDATION_REPORT.md).
 
 ### Installer
 
@@ -214,7 +218,7 @@ The adblocking feature is experimental, is not part of the stable release, and i
 .\app\installer\build.ps1
 ```
 
-The current installer script builds the earlier uBOL experiment, not the adblocking branch. The adblocking proof of concept is built manually with the feature flags above until its functional and performance tests pass. The setup and `SHA256SUMS.txt` land in `app\dist\`. The script needs `makensis.exe` (NSIS 3+), creates Start Menu and desktop shortcuts, and registers the uninstaller under `HKCU`. Pass `-SkipUblockFetch` to reuse an already staged payload.
+The current installer script builds the earlier uBOL experiment, not the adblocking branch. The adblocking proof of concept is built manually with the feature flags above until real-account validation and a new certification pass. The setup and `SHA256SUMS.txt` land in `app\dist\`. The script needs `makensis.exe` (NSIS 3+), creates Start Menu and desktop shortcuts, and registers the uninstaller under `HKCU`. Pass `-SkipUblockFetch` to reuse an already staged payload.
 
 ### Bench host
 

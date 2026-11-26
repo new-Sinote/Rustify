@@ -33,7 +33,9 @@ bench = []
 ublock = []
 # Experimental adblocking proof of concept. Detects the player's advertisement
 # title and mutes the WebView until the ad ends. Off by default and uncertified.
-adblock = []
+adblock = [
+  "windows/Media_Control",
+]
 
 [profile.release]
 opt-level = 2

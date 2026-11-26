@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-26  
 **Branch:** `feature/adblocking`  
-**Status:** Research complete. First proof of concept implemented; simulated title tests and a short performance smoke test pass. Real-account ad-cycle, sign-in, DRM, and background-playback tests are still pending.  
+**Status:** Research complete. The experimental mute proof of concept and the opt-in Automatic Ad Discovery mode are implemented. Synthetic lifecycle, consecutive-ad, max-skip, watchdog, title-match, ambiguous-session, and UI tests pass. Real-account ad-cycle, sign-in, DRM, background-playback, and discovery-on-real-tracks tests are **BLOCKED** pending an approved temporary Spotify Free account. Zero real advertisements have been detected. The build is not certified.  
 **Owner decision:** [ADR-0001](ADR-0001-adblocking-direction.md) makes adblocking a first-class requirement.
 
 ## 1. Constraints
@@ -124,45 +124,74 @@ There are two unrelated projects with this name:
 **Behavior:**
 
 1. Subscribe to `DocumentTitleChanged`.
-2. Treat a title that equals `Advertisement` or ends with `- Advertisement` / en-dash `Advertisement` as an ad break.
-3. Mute the player WebView through the documented `ICoreWebView2_8::SetIsMuted(true)` API.
+2. Classify the title before acting:
+   - **Ad** when the whole title is `Advertisement`, or the final segment after a separator (`-`, en/em dash, `•`, `·`, `|`) is `Advertisement`.
+   - **Track** when at least two non-empty segments are present and the title is not player chrome or an ad-like unknown.
+   - **Unknown** for empty titles, player chrome (`Spotify`, `Spotify - Web Player...`, sign-in pages), and any title that mentions an advertisement but does not match the confirmed parser. Unknown is never treated as a track.
+3. Mute the player WebView through the documented `ICoreWebView2_8::SetIsMuted(true)` API when an ad is detected.
 4. Unmute when the title changes away from the ad marker.
-5. Reset and unmute on page load.
-6. Add a 120-second watchdog that unmutes if the title never changes, so a detection bug cannot leave the app silent.
-7. Log only ad-state transitions, never track titles.
+5. Reset and unmute on page load; re-detect and re-mute if the loaded page is still an ad.
+6. Use a bounded watchdog instead of an unconditional 120-second unmute:
+   - first recheck at 120 seconds;
+   - if the title still reads as an ad, recheck every 30 seconds;
+   - at 15 minutes of continuous mute, fail open: unmute, suppress remute for the same ad until the page reloads or the user starts discovery again, and stop discovery with `watchdog fail-open`;
+   - retry a failed unmute every 5 seconds.
+7. Add an **opt-in** Automatic Ad Discovery test mode. It is off by default, never starts automatically in a release build, and is controlled from the `AD` panel:
+   - skips only confirmed normal tracks while audio is playing;
+   - one skip in flight at a time, at least the configured interval apart (2-60 s, default 5 s);
+   - stops skipping immediately when an ad is detected, an unknown title appears, or playback pauses; an unknown title fails after 30 seconds;
+   - stops with an error when a skip is rejected or unavailable, or the configured maximum (1-500, default 50) is reached;
+   - cancels a pending skip on pause or page load;
+   - stops with an error after 30 seconds of unknown title;
+   - never bypasses Spotify's skip limit; a disabled Next stops discovery.
+8. Perform test-mode skips through the documented Windows media-session API (`GlobalSystemMediaTransportControlsSessionManager` and `TrySkipNextAsync`) instead of injecting JavaScript into Spotify.
+   - The `adblock` build passes `--enable-features=MediaSessionService` to WebView2 so the player publishes a Windows media session. This is a disclosed, build-scoped change.
+   - Session selection fails closed: exactly one media session, a WebView2 AUMID, `Playing` status, Next enabled, and a normalized media-title match against the player document title. A mismatch, ambiguity, or missing session stops discovery without a skip.
+9. Log only ad-state transitions, discovery state, counts, failure reasons, and (debug only) the AUMID and a boolean title-match result. Never log track titles.
 
 **Why this is the smallest legal PoC:**
 
 - No third-party code is copied.
 - No network requests are blocked, so DRM and audio delivery stay untouched.
-- No page JavaScript is injected for ad detection.
+- No page JavaScript is injected into Spotify for ad detection.
 - It directly addresses the audio-ad surface that uBOL could not prove it blocks.
 - It is small enough to measure and easy to remove if it fails.
 
 **What it does not do:**
 
-- It does not block ad delivery. The ad still plays silently.
-- It does not guarantee detection if Spotify changes its title or localization.
+- It does not block ad delivery. The ad still plays silently when detection works.
+- It does not guarantee detection if Spotify changes its title, localizes it, or publishes a different media-session title.
+- It does not handle non-English ad markers; they remain `Unknown` and are not muted.
 - It does not replace uBOL or native filtering for display/tracker ads.
+- It does not bypass Spotify skip restrictions.
 - It is not certified and must not be presented as a stable feature.
 
 ## 5. Test plan
 
 ### Functional
 
+The full procedure is in [ADBLOCKING_REAL_ACCOUNT_TEST.md](ADBLOCKING_REAL_ACCOUNT_TEST.md). It requires an approved temporary Spotify Free account and a fresh/copied profile.
+
 - Free-account sign-in and playback.
 - Normal track playback with no false mute.
 - Ad break detection, mute, and unmute.
+- Consecutive ads in one break.
+- Long ad and bounded watchdog fail-open.
+- Non-English or alternate ad titles.
 - Pause/resume during an ad and after an ad.
 - Track skip during an ad.
 - Page reload during an ad.
 - Window hidden/minimized during an ad.
-- Watchdog recovery after a simulated stuck title.
+- Sign-out/sign-in recovery.
+- Discovery start/stop, interval, max skips, pause, reload, unknown title, and rejected skip.
+- `adblock` and `adblock ublock` builds on the same account.
 
 ### Performance
 
 - Window-ready time.
 - Memory (PSS) and CPU with `adblock` off vs on, paused and playing.
+- Idle, music, ad-muted, background, discovery, and repeated transitions.
+- 60-second idle with memory trim enabled.
 - Startup and page-load time.
 - No new persistent process.
 
@@ -170,9 +199,10 @@ There are two unrelated projects with this name:
 
 - No credential/token access.
 - No DRM licence or audio interception.
-- No page injection for ad detection.
+- No page injection into Spotify for ad detection.
 - No track titles in logs.
 - No changes to the 0.2.0 release artifacts.
+- `MediaSessionService` disclosed and scoped to adblock builds.
 
 ## 6. Certification impact
 
@@ -192,7 +222,10 @@ Any build with `adblock` or `ublock` enabled must be treated as uncertified unti
 - Widevine/DRM playback;
 - background playback;
 - ad detection and mute/unmute across a full ad cycle;
+- consecutive, long, and non-English ads;
 - false positives, long ads, and stuck-mute recovery;
+- discovery on real tracks, including pause, reload, unknown titles, and Spotify's skip limit;
+- the `MediaSessionService` media-session path and its effect on media keys;
 - memory/CPU overhead against a control build;
 - installer/uninstaller behaviour and licence notices.
 
@@ -203,48 +236,79 @@ Any build with `adblock` or `ublock` enabled must be treated as uncertified unti
 - `cargo check` (default features): pass.
 - `cargo check --features adblock`: pass.
 - `cargo check --features "adblock ublock"`: pass.
-- `cargo test --features adblock`: 3 title-parser tests pass.
+- `cargo test --features adblock`: 15 tests pass, 0 fail.
+- `cargo clippy -- -D warnings`: pass.
+- `cargo clippy --features "adblock ublock" -- -D warnings`: pass.
+- Release builds for default, `adblock`, and `adblock ublock`: pass.
 
-The default build has no adblocking code compiled in. The feature is opt-in and is not part of the installer.
+The default build has no adblocking code compiled in. The feature is opt-in and is not part of the installer. The only dependency change is the `windows/Media_Control` feature; no new crate was added.
 
-### 7.2 Simulated advertisement-title test
+### 7.2 Synthetic functional tests
 
-The functional test used a temporary profile and the `bench` + `adblock` build. It loaded `https://open.spotify.com/` without signing in and changed `document.title` through the local CDP port. This tests the WebView2 event, mute, unmute, page-load reset, and watchdog path; it is **not** a real Spotify ad test.
+A local page with Web Audio and a synthetic media session was used with the `bench` + `adblock` build and a fresh temporary profile. The page's `setTrack` changes both the media-session metadata and the document title without injecting JavaScript into Spotify. This is **not** a real Spotify ad test.
 
-Observed log transitions:
+| Test | Result | Evidence |
+|---|---|---|
+| SMTC skip and title match | **PASS** | 3 accepted skips, then `max skips reached`; `matched=true` |
+| Lifecycle: skip, ad, mute, unmute, pause, resume, reload | **PASS** | 8 accepted skips, 1 ad, 1 cycle; no skip while paused or during the ad |
+| Consecutive ads and repeated cycles | **PASS** | 5 accepted skips, 4 ads, 4 cycles; one cycle per break |
+| Bounded watchdog | **PASS** | extensions at ~3/5/7 s, fail-open at ~9 s after mute, no remute |
+| Max skips | **PASS** | 3 skips, state `Error`, `max skips reached` |
+| Title mismatch | **PASS** | 0 skips, state `Error`, `media session title does not match the player` |
+| Ambiguous sessions | **PASS** | 0 skips, state `Error`, `ambiguous media sessions: 2` |
+| Start/Stop UI | **PASS** | 2 skips, then no further skips after Stop |
+
+Observed watchdog log with shortened bench-only durations:
 
 ```text
-[  3144 ms] adblock=page_load unmuted
-[ 20265 ms] adblock=ad_start muted
-[ 21474 ms] adblock=ad_end unmuted
-[ 22686 ms] adblock=ad_start muted
-[142686 ms] adblock=watchdog_unmute
+adblock=ad_start muted
+adblock=watchdog_extend muted_ms=3009
+adblock=watchdog_extend muted_ms=5020
+adblock=watchdog_extend muted_ms=7030
+adblock=watchdog_fail_open unmuted
+discovery=error reason=watchdog fail-open
 ```
 
-The final watchdog unmuted while the title still read `Advertisement`, which is the intended fail-open behaviour. The app remained responsive and the process tree stayed alive. No track title was written to the log.
+The fail-closed paths did not issue a skip. The ambiguity run used a second WebView2 host with its own media session; Rustify saw `total=2 webview=2` and stopped. The mismatch run saw `matched=false` and stopped before calling `TrySkipNextAsync`.
 
-After the unmute-retry hardening, a second run reproduced `ad_start` at 3664 ms and `watchdog_unmute` at 123664 ms with the title held at `Advertisement`. A separate ad-to-track run reproduced `ad_start` at 4150 ms and `ad_end` at 6276 ms.
+### 7.3 Performance smoke test
 
-### 7.3 Short performance smoke test
-
-Release `bench` builds were measured with `bench/measure/tree-metrics.ps1` for 15 seconds after the page settled. Each run used a fresh temporary profile and the signed-out landing page.
+Release `bench` builds were measured with `bench/measure/tree-metrics.ps1` on a fresh temporary profile. Fifteen-second samples after the page settled; the transition run was 30 seconds; the idle check was 60 seconds with memory trim enabled.
 
 | Build and state | Processes | PSS | CPU, one core |
 |---|---:|---:|---:|
-| Control, idle | 10 | 505.0 MB | 63.9% |
-| `adblock`, idle | 10 | 505.0 MB | 57.2% |
-| `adblock`, simulated ad title | 10 | 476.8 MB | 113.2% |
-| Control, simulated ad title | 10 | 481.4 MB | 115.0% |
+| Control, idle | 8 | 134.8 MB | 0.53% |
+| `adblock`, idle | 8 | 137.7 MB | 0.51% |
+| Control, music | 9 | 171.0 MB | 2.52% |
+| `adblock`, music | 9 | 173.9 MB | 2.42% |
+| Control, ad title | 9 | 174.4 MB | 1.30% |
+| `adblock`, ad muted | 9 | 173.3 MB | 1.21% |
+| Control, background music | 9 | 173.7 MB | 1.41% |
+| `adblock`, background music | 9 | 171.9-172.3 MB | 1.20-2.62% |
+| `adblock`, discovery, 2 s interval | 9 | 173.8 MB | 3.13% |
+| `adblock`, repeated transitions, 30 s | 9 | 178.9 MB | 2.82% |
 
-The CPU rise after changing the document title appears in the control build too, so it is page/rendering activity, not attributable to the mute feature. PSS differences are within run-to-run noise. The feature adds no process. These numbers are a smoke test only; they do not replace the 0.2.0 certification method or a real playback soak.
+The transition run performed 5 accepted skips, 4 ad breaks, and 4 cycles in about 31 seconds. It is a stress test, not a real listening pattern.
 
-### 7.4 Not yet tested
+A 60-second idle sample with trimming enabled measured 28.1 MB PSS / 0.29% for control and 32.5 MB PSS / 0.31% for `adblock`. The 15-second PSS is higher because the hydrate trim has not run yet.
+
+CPU samples are noisy on this machine. The repeatable observations are: no new persistent process; PSS within about 3 MB of control in music and ad states; discovery adds 0-5 MB PSS and roughly 1-3% of one core for its timer and UI updates. These are smoke numbers, not certification.
+
+An earlier 60-second `--no-trim` run showed about 64% of one core in both builds. The cause was a bench-harness busy-wait on an unconsumed policy deadline, not adblocking. A related discovery bug also kept an unknown-title deadline armed while discovery was off. Both were fixed during validation; the 60-second idle CPU returned to 0.2-0.8% and the transition run measured 2.82%.
+
+### 7.4 Real-account status
+
+**BLOCKED.** No approved temporary Spotify Free account was available. Zero real advertisements have been detected, and no real ad, DRM, background-playback, sign-in, or skip-limit case has been run. The full procedure and the blocked-case table are in [ADBLOCKING_REAL_ACCOUNT_TEST.md](ADBLOCKING_REAL_ACCOUNT_TEST.md) and [ADBLOCKING_VALIDATION_REPORT.md](ADBLOCKING_VALIDATION_REPORT.md).
+
+### 7.5 Not yet tested
 
 - Real free-account sign-in and a real audio-ad cycle.
+- Consecutive, long, and non-English real ads.
 - Widevine/DRM playback and background playback with `adblock` enabled.
 - Pause, resume, skip, reload, and hide/show during a real ad.
-- Non-English player titles.
-- Long ads that exceed the 120-second watchdog.
+- Sign-out/sign-in recovery.
+- Discovery on real tracks and Spotify's real skip limit.
+- `MediaSessionService` side effects on media keys and background playback.
 - uBOL plus `adblock` together on a real account.
 
 ## 8. Sources
@@ -253,6 +317,9 @@ The CPU rise after changing the document title appears in the control build too,
 - WebView2 audio API: <https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2_8>
 - WebView2 document title event: <https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2>
 - WebView2 request interception: <https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/webresourcerequested>
+- WebView2 additional browser arguments: <https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2environmentoptions>
+- Windows media session control: <https://learn.microsoft.com/en-us/uwp/api/windows.media.control>
+- `TrySkipNextAsync`: <https://learn.microsoft.com/en-us/uwp/api/windows.media.control.globalsystemmediatransportcontrolssession.tryskipnextasync>
 - Brave `adblock-rust`: <https://github.com/brave/adblock-rust> (MPL-2.0)
 - Blockify extension source snapshot: <https://github.com/dhanur2/spotify-ad-blocker-extension-blockify> (PolyForm Noncommercial 1.0.0)
 - Older Python Blockify: <https://github.com/serialoverflow/blockify> (MIT, Linux DBus/PulseAudio)
