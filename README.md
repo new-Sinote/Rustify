@@ -25,7 +25,7 @@
   <sub>535 KB installer · Windows 10/11 x64 · free accounts welcome · no telemetry</sub>
 </p>
 
-> **Project direction changed on 2026-11-26:** Spotify ads no longer have to remain untouched. Integrated adblocking is now a first-class requirement, developed on the `feature/adblocking` branch. The stable **v0.2.0-pre.1** build is unchanged and still ad-supported. The earlier [v0.3.0-pre.1 uBOL experiment](https://github.com/new-Sinote/Rustify/releases/tag/v0.3.0-pre.1) remains available but is not the new adblocking build. [ADR](docs/ADR-0001-adblocking-direction.md) · [Research](docs/ADBLOCKING_RESEARCH.md)
+> **Project direction changed on 2026-11-26:** Spotify ads no longer have to remain untouched. Integrated adblocking is now a first-class requirement, developed on the `feature/adblocking` branch. The stable **v0.2.0-pre.1** build is unchanged and still ad-supported. The earlier [v0.3.0-pre.1 uBOL experiment](https://github.com/new-Sinote/Rustify/releases/tag/v0.3.0-pre.1) remains available but is not the new adblocking build. The first adblocking pre-release is [v0.3.0-adblock-pre.1](https://github.com/new-Sinote/Rustify/releases/tag/v0.3.0-adblock-pre.1); it is experimental and uncertified. [ADR](docs/ADR-0001-adblocking-direction.md) · [Research](docs/ADBLOCKING_RESEARCH.md)
 
 ---
 
@@ -80,7 +80,7 @@ The stable build also hides the **Explore Premium** button and **Install App** l
 
 ## Integrated adblocking development
 
-Adblocking is now a first-class project requirement. The work lives on the `feature/adblocking` branch; no adblocking build has been released as stable.
+Adblocking is now a first-class project requirement. The work lives on the `feature/adblocking` branch. An experimental, uncertified pre-release is available; no adblocking build has been released as stable.
 
 The first proof of concept combines a native audio-ad mute fallback with an opt-in ad-discovery test mode:
 
@@ -92,6 +92,10 @@ The first proof of concept combines a native audio-ad mute fallback with an opt-
 - Does not block DRM traffic, extract audio, or inject ad-detection JavaScript.
 
 The branch keeps the uBOL network-filtering experiment as a candidate layer for display and tracker requests. uBOL is GPL-3.0 and needs licence and source compliance if it is distributed. See the [ADR](docs/ADR-0001-adblocking-direction.md), [research](docs/ADBLOCKING_RESEARCH.md), and [validation report](docs/ADBLOCKING_VALIDATION_REPORT.md).
+
+The experimental adblocking pre-release:
+
+[Download v0.3.0-adblock-pre.1](https://github.com/new-Sinote/Rustify/releases/tag/v0.3.0-adblock-pre.1) · [Release notes](docs/releases/v0.3.0-adblock-pre.1.md) · [Validation report](docs/ADBLOCKING_VALIDATION_REPORT.md)
 
 The earlier uBOL build remains available:
 
@@ -108,7 +112,7 @@ The earlier uBOL build remains available:
 
 **Uninstall:** Settings → Apps → Rustify. The uninstaller asks whether to delete your local profile; a silent uninstall keeps it.
 
-> **Before you download:** Rustify is unsigned, has no auto-update, and is Windows-only. The stable 0.2.0 build plays ads normally. Adblocking is under development on `feature/adblocking` and is not part of the stable download. If that is a deal-breaker, wait for the adblocking release or use Spotify Premium.
+> **Before you download:** Rustify is unsigned, has no auto-update, and is Windows-only. The stable 0.2.0 build plays ads normally. An uncertified adblocking pre-release is available on the releases page, but it is not the stable download and has not been tested against a real Spotify account. If that is a deal-breaker, wait for a certified adblocking build or use Spotify Premium.
 
 ## Proof, not promises
 
@@ -150,7 +154,7 @@ No. Rustify is an independent, unofficial host. It is not affiliated with, endor
 
 **Does it block ads?**  
 The stable 0.2.0 build does not. Ads are served by Spotify and play normally, including on free accounts.
-Adblocking is now a first-class development requirement on `feature/adblocking`. The current proof of concept detects audio ad breaks through the WebView2 document title and mutes the player until the ad ends. An opt-in Automatic Ad Discovery test mode can skip confirmed normal tracks until an ad appears; it is never active by default and stops on unknown titles or player errors. It does not yet block ad delivery, and it is not released or certified. Network filtering through uBOL and native request filtering remain under evaluation. Ad behaviour is not guaranteed, and any adblocking build carries additional Spotify ToS risk.
+Adblocking is now a first-class development requirement on `feature/adblocking`. The current proof of concept detects audio ad breaks through the WebView2 document title and mutes the player until the ad ends. An opt-in Automatic Ad Discovery test mode can skip confirmed normal tracks until an ad appears; it is never active by default and stops on unknown titles or player errors. It does not yet block ad delivery. It is published only as an uncertified pre-release, and real-account validation is blocked. Network filtering through uBOL and native request filtering remain under evaluation. Ad behaviour is not guaranteed, and any adblocking build carries additional Spotify ToS risk.
 
 **Will this get my account banned?**  
 The stable build does not alter playback or ads, extract tokens, or use undocumented APIs. It hosts the official web player. Adblocking builds deliberately change ad behaviour and network requests, so treat their account risk as higher. Either way, Rustify is an unofficial client, so use remains subject to Spotify's terms.
@@ -251,7 +255,7 @@ docs/
   ADR-0001-adblocking-direction.md
   PHASE-0-2-REPORT.md
   PHASE-3-SPIKE.md
-  releases/         Release notes for published builds, including v0.3.0-pre.1.
+  releases/         Release notes for published builds, including v0.3.0-adblock-pre.1.
 ```
 
 ### Measurement harness
@@ -276,7 +280,7 @@ The scripts were written for the original test machine and contain `C:\Rustify\.
 - **Local profile.** The WebView2 profile lives in `%LOCALAPPDATA%\Rustify\WebView2`; the diagnostic log is `%LOCALAPPDATA%\Rustify\rustify.log`.
 - **Nothing extracted.** Rustify does not handle your password, extract session tokens, proxy traffic, or re-stream audio.
 - **One cosmetic page rule in the stable build.** A scoped stylesheet hides the two nav-bar upsells. It does not touch playback, ads, DRM, or requests. Adblocking builds can add request filtering; the current proof of concept adds a disclosed audio-ad mute fallback.
-- **Stable build: ads are untouched.** Rustify is a host, not an ad blocker in the stable release. The `feature/adblocking` branch is the disclosed exception and is not yet released.
+- **Stable build: ads are untouched.** Rustify is a host, not an ad blocker in the stable release. The `feature/adblocking` branch is the disclosed exception and is published only as an uncertified pre-release.
 
 Browser profiles, cookies, screenshots, raw soak/SMTC logs, and track or playlist metadata are excluded from this repository.
 

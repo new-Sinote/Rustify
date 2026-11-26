@@ -3,7 +3,7 @@
 **Date:** 2026-11-26  
 **Branch:** `feature/adblocking`  
 **Applies to:** `adblock` and `adblock ublock` builds only  
-**Status:** **BLOCKED.** No approved temporary Spotify Free account has been provided. No real advertisement has been observed or tested. The synthetic results in [ADBLOCKING_VALIDATION_REPORT.md](ADBLOCKING_VALIDATION_REPORT.md) do not substitute for this procedure.
+**Status:** **BLOCKED.** No approved temporary Spotify Free account has been provided. No real advertisement has been observed or tested. The synthetic results in [ADBLOCKING_VALIDATION_REPORT.md](ADBLOCKING_VALIDATION_REPORT.md) do not substitute for this procedure, and neither does the published pre-release `v0.3.0-adblock-pre.1`.
 
 This procedure validates the experimental audio-ad mute fallback and the opt-in Automatic Ad Discovery mode against real Spotify Free playback. It is written so the test can be repeated without exposing a personal account, listening history, or track metadata.
 

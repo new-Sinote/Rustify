@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-26  
 **Branch:** `feature/adblocking`  
-**Status:** Research complete. The experimental mute proof of concept and the opt-in Automatic Ad Discovery mode are implemented. Synthetic lifecycle, consecutive-ad, max-skip, watchdog, title-match, ambiguous-session, and UI tests pass. Real-account ad-cycle, sign-in, DRM, background-playback, and discovery-on-real-tracks tests are **BLOCKED** pending an approved temporary Spotify Free account. Zero real advertisements have been detected. The build is not certified.  
+**Status:** Research complete. The experimental mute proof of concept and the opt-in Automatic Ad Discovery mode are implemented. Synthetic lifecycle, consecutive-ad, max-skip, watchdog, title-match, ambiguous-session, and UI tests pass. Published as an uncertified pre-release (`v0.3.0-adblock-pre.1`). Real-account ad-cycle, sign-in, DRM, background-playback, and discovery-on-real-tracks tests are **BLOCKED** pending an approved temporary Spotify Free account. Zero real advertisements have been detected. The build is not certified.  
 **Owner decision:** [ADR-0001](ADR-0001-adblocking-direction.md) makes adblocking a first-class requirement.
 
 ## 1. Constraints
@@ -212,6 +212,7 @@ The full procedure is in [ADBLOCKING_REAL_ACCOUNT_TEST.md](ADBLOCKING_REAL_ACCOU
 |---|---|
 | `CERTIFICATION_0.2.0.md` | **Invalid.** It covers the published 0.2.0 build and the old ads-untouched scope only. |
 | `v0.3.0-pre.1` uBOL pre-release | **Never certified.** It remains an earlier experiment. |
+| `v0.3.0-adblock-pre.1` | **Uncertified pre-release.** Portable `rustify-adblock.exe`, synthetic tests only, zero real ads. |
 | Any stable claim based on 0.2.0 memory, CPU, startup, or installer results | **Not applicable.** Adblocking builds add a feature and may change network behaviour. |
 
 ### 6.2 Certification that must be repeated
@@ -241,7 +242,7 @@ Any build with `adblock` or `ublock` enabled must be treated as uncertified unti
 - `cargo clippy --features "adblock ublock" -- -D warnings`: pass.
 - Release builds for default, `adblock`, and `adblock ublock`: pass.
 
-The default build has no adblocking code compiled in. The feature is opt-in and is not part of the installer. The only dependency change is the `windows/Media_Control` feature; no new crate was added.
+The default build has no adblocking code compiled in. The feature is opt-in and is not part of the installer. The pre-release is a portable executable, not the installer. The only dependency change is the `windows/Media_Control` feature; no new crate was added.
 
 ### 7.2 Synthetic functional tests
 
@@ -298,7 +299,7 @@ An earlier 60-second `--no-trim` run showed about 64% of one core in both builds
 
 ### 7.4 Real-account status
 
-**BLOCKED.** No approved temporary Spotify Free account was available. Zero real advertisements have been detected, and no real ad, DRM, background-playback, sign-in, or skip-limit case has been run. The full procedure and the blocked-case table are in [ADBLOCKING_REAL_ACCOUNT_TEST.md](ADBLOCKING_REAL_ACCOUNT_TEST.md) and [ADBLOCKING_VALIDATION_REPORT.md](ADBLOCKING_VALIDATION_REPORT.md).
+**BLOCKED.** No approved temporary Spotify Free account was available. Zero real advertisements have been detected, and no real ad, DRM, background-playback, sign-in, or skip-limit case has been run. The `v0.3.0-adblock-pre.1` pre-release was published from this state; publishing does not change the blocked status. The full procedure and the blocked-case table are in [ADBLOCKING_REAL_ACCOUNT_TEST.md](ADBLOCKING_REAL_ACCOUNT_TEST.md) and [ADBLOCKING_VALIDATION_REPORT.md](ADBLOCKING_VALIDATION_REPORT.md).
 
 ### 7.5 Not yet tested
 

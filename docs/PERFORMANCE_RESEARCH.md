@@ -9,6 +9,8 @@
 
 > **Historical baseline - superseded product requirement.** This document records the 0.2.0 measurements and the old ads-untouched decision. On 2026-11-26 the owner made adblocking a first-class requirement. The 0.2.0 numbers remain the baseline for 0.2.0, but they do not certify any adblocking build. See [ADR-0001](ADR-0001-adblocking-direction.md) and [ADBLOCKING_RESEARCH.md](ADBLOCKING_RESEARCH.md).
 
+> **Update for v0.3.0-adblock-pre.1 (2026-11-26):** the adblocking pre-release adds a native mute fallback and an opt-in discovery mode. Its synthetic process-tree measurements are in [Appendix C](#appendix-c---adblocking-branch-smoke-test). They are smoke numbers on a local page, not real Spotify playback, and they do not extend the 0.2.0 certification.
+
 ## 1. Executive summary
 
 The engine question was settled early: a WebView2 host is the only tested architecture that can run the official Spotify Web Player with Widevine, background playback, and untouched ads while staying near the memory budgets. The difficult part was not the Rust framework. It was the page's tendency to refill cache after every trim.
@@ -562,6 +564,46 @@ Frameless window (`decorations(false)`) with a 40 px child WebView bar, local HT
 - Two WebViews sharing a user-data folder must use identical `CoreWebView2EnvironmentOptions`. The bar first failed with `HRESULT 0x8007139F` until it received the same additional browser arguments as the main view. This is a wry/WebView2 requirement, not a Rustify bug.
 - Cost: the bar's renderer measured 38.5 MB PSS before trims; the paused tree measured 563.8 MB. The shipping app accepts this cost because the exact Spotify-style bar is a product requirement, and the certified lifecycle totals include it.
 - The shipping bar also fixes two prototype issues: only a mousedown with `detail >= 2` toggles maximize (there is no duplicate `dblclick` handler), and the bar starts with the correct maximized body class when launched maximized.
+
+## Appendix C - Adblocking branch smoke test
+
+> **Not certification.** These numbers are from a local synthetic page, not real Spotify playback. They compare the release `bench` builds on one machine and show the order of magnitude of the adblocking overhead. The full test evidence is in [ADBLOCKING_VALIDATION_REPORT.md](ADBLOCKING_VALIDATION_REPORT.md) §8.
+
+The `v0.3.0-adblock-pre.1` build adds title detection, a mute fallback, and an opt-in discovery timer. The default build has none of that code. Both variants were measured with `bench/measure/tree-metrics.ps1` on a fresh temporary profile.
+
+Method:
+
+- Release `bench` control and `bench adblock` builds from the same commit.
+- 15-second PSS/CPU samples after the page settled; the transition run was 30 seconds; the idle check was 60 seconds with the normal memory trim enabled.
+- The synthetic page plays a Web Audio tone. The "ad" state changes the document title and media-session title to the ad marker; the audio keeps playing so mute can be observed.
+- CPU is percent of one logical core on the 16-core test machine.
+
+| Build and state | Processes | PSS | CPU, one core |
+|---|---:|---:|---:|
+| Control, idle | 8 | 134.8 MB | 0.53% |
+| `adblock`, idle, discovery off | 8 | 137.7 MB | 0.51% |
+| Control, music | 9 | 171.0 MB | 2.52% |
+| `adblock`, music | 9 | 173.9 MB | 2.42% |
+| Control, ad title | 9 | 174.4 MB | 1.30% |
+| `adblock`, ad muted | 9 | 173.3 MB | 1.21% |
+| `adblock`, discovery, 2 s interval | 9 | 173.8 MB | 3.13% |
+| `adblock`, repeated transitions, 30 s | 9 | 178.9 MB | 2.82% |
+
+| Build | Processes | PSS | CPU, one core |
+|---|---:|---:|---:|
+| Control, 60 s idle with trim | 8 | 28.1 MB | 0.29% |
+| `adblock`, 60 s idle with trim | 8 | 32.5 MB | 0.31% |
+
+The transition run performed 5 accepted skips, 4 ad breaks, and 4 mute/unmute cycles in about 31 seconds. It is an aggressive synthetic stress test, not a real listening pattern.
+
+Observations:
+
+- No new persistent process. Idle is 8 processes; playing states add one renderer (9).
+- PSS is within about 3 MB of control in music and ad states; run-to-run noise is larger than the difference.
+- Discovery adds 0-5 MB PSS depending on run and roughly 1-3% of one core for its timer and UI updates.
+- The 60-second PSS is much lower than the 15-second PSS because the hydrate trim has run.
+
+CPU samples are noisy on this machine; the control music sample (2.52%) was higher than the `adblock` music sample (2.42%), which is not physically meaningful. These are smoke numbers. They do not cover real Spotify playback, real ads, DRM, or a long soak, and they are not a release gate.
 
 ## Sources
 

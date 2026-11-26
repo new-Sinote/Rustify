@@ -4,7 +4,8 @@
 **Branch:** `feature/adblocking`  
 **Base commit:** `83a7f3d`  
 **App version:** 0.3.0 (uncertified experimental branch)  
-**Status:** **Synthetic validation passed. Real-account validation is BLOCKED. Not certified. Not released.**
+**Pre-release:** [v0.3.0-adblock-pre.1](releases/v0.3.0-adblock-pre.1.md)  
+**Status:** **Synthetic validation passed. Real-account validation is BLOCKED. Published as an uncertified pre-release. Not certified.**
 
 This report records what was actually tested for the experimental audio-ad mute fallback and the opt-in Automatic Ad Discovery mode. It separates synthetic evidence from real Spotify evidence. No real advertisement has been observed, so no real-account pass is claimed.
 
@@ -30,7 +31,8 @@ This report records what was actually tested for the experimental audio-ad mute 
 | Real DRM, background playback, pause/resume/skip/reload during an ad | **BLOCKED** |
 | Real advertisements detected | **0** |
 | New certification for an adblocking build | **Not started** |
-| Installer, release, tag, or push | **Not changed** |
+| Installer | **Not changed** |
+| Pre-release | **Published as `v0.3.0-adblock-pre.1` (portable exe, uncertified)** |
 
 The synthetic tests prove the state machine, WebView2 mute calls, Windows media-session selection, and fail-closed paths on a local test page. They do **not** prove that Spotify's real document title, media session, ad timing, or DRM path behaves the same way.
 
@@ -375,8 +377,8 @@ After the fix, the 60-second idle CPU returned to 0.2-0.8% of one core and the 3
 - The synthetic tests used a local page only. The earlier `discovery-title-test.mjs` that injected a title into Spotify was not used for this report.
 - The `bench` flags `--adblock-autostart`, `--adblock-interval`, `--adblock-max-skips`, and the watchdog overrides are compiled only with `bench`; they are not available in the default or release `adblock` build.
 - The default build has no AD button, no discovery code, and no `MediaSessionService` flag.
-- No commit, tag, installer, or release asset was created by the test runs. The code and this report are committed together on `feature/adblocking` after the checks above.
+- No tag or release asset was created by the test runs. The code and this report are committed together on `feature/adblocking` after the checks above; the uncertified pre-release `v0.3.0-adblock-pre.1` was published afterward from that commit.
 
 ## 14. Conclusion
 
-The synthetic evidence supports the implementation as a safe experimental prototype: it starts only when asked, skips only confirmed tracks, stops skipping on ads and unknown titles, bounds mute duration, and fails closed on ambiguous sessions or title mismatches. It does **not** establish that the feature works on real Spotify ads. The real-account section remains blocked, the real ad count is zero, and the build is not certified.
+The synthetic evidence supports the implementation as a safe experimental prototype: it starts only when asked, skips only confirmed tracks, stops skipping on ads and unknown titles, bounds mute duration, and fails closed on ambiguous sessions or title mismatches. It does **not** establish that the feature works on real Spotify ads. The real-account section remains blocked, the real ad count is zero, and the build is not certified. It is published only as an uncertified pre-release.
