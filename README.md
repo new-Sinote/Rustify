@@ -1,267 +1,332 @@
-<p align="center">
-  <img src="app/assets/icon-256.png" width="96" alt="Rustify icon">
+ <p align="center">
+  <img src="app/assets/icon-256.png" width="100" alt="Rustify logo">
 </p>
 
 <h1 align="center">Rustify</h1>
 
 <p align="center">
-  <strong>Spotify, without the browser tax.</strong><br>
-  A native Windows shell In Rust for the official Spotify Web Player.
+  <strong>Your music. Your desktop. Less overhead.</strong><br>
+  A lightweight, native Windows desktop client for the official Spotify Web Player, built with Rust and WebView2.
 </p>
 
 <p align="center">
-  <a href="https://github.com/new-Sinote/Rustify/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/new-Sinote/Rustify?label=latest&color=1ed760"></a>
-  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-1ed760"></a>
-  <img alt="Windows 10/11 x64" src="https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-0078D6">
-  <img alt="No telemetry" src="https://img.shields.io/badge/telemetry-none-1ed760">
+  <a href="https://github.com/new-Sinote/Rustify/releases/latest"><img src="https://img.shields.io/github/v/release/new-Sinote/Rustify?style=flat-square&label=release&color=1ed760" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?style=flat-square" alt="Windows 10 and 11">
+  <img src="https://img.shields.io/badge/language-Rust-orange?style=flat-square" alt="Rust">
+  <img src="https://img.shields.io/badge/telemetry-none-1ed760?style=flat-square" alt="No telemetry">
 </p>
 
 <p align="center">
-  <a href="https://github.com/new-Sinote/Rustify/releases/latest"><img alt="Download Rustify for Windows" src="https://img.shields.io/badge/Download_for_Windows-v0.2.0--pre.1-1ed760?style=for-the-badge"></a>
-  <a href="docs/CERTIFICATION_0.2.0.md"><img alt="Read the certification report" src="https://img.shields.io/badge/Read_the-certification-181717?style=for-the-badge"></a>
+  <a href="https://github.com/new-Sinote/Rustify/releases/latest"><img src="https://img.shields.io/badge/Download_Rustify-v0.3.0-1ed760?style=for-the-badge&logo=windows&logoColor=white" alt="Download Rustify"></a>
+  <a href="https://www.scanrepo.dev/scan/github/new-Sinote/Rustify"><img src="https://img.shields.io/badge/Scan_with-ScanRepo-181717?style=for-the-badge&logo=github&logoColor=white" alt="Scan Rustify with ScanRepo"></a>
 </p>
 
 <p align="center">
-  <sub>535 KB installer · Windows 10/11 x64 · free accounts welcome · no telemetry</sub>
+  <sub>Free to use · Open source · No telemetry · Windows 10/11 x64</sub>
 </p>
-
-> **Experimental uBOL build:** [v0.3.0-pre.1](https://github.com/new-Sinote/Rustify/releases/tag/v0.3.0-pre.1) bundles uBlock Origin Lite and is **not** the default download. It is not certified, Spotify audio ads may still play, and it carries extra Spotify ToS risk. [Release notes](docs/releases/v0.3.0-pre.1.md)
 
 ---
 
-**Pause the music. Get the RAM back.** The 10-minute hidden/paused gate peaked at **95 MB** for the entire WebView2 process tree and averaged **60 MB**. The 35-minute playing soak peaked at **263 MB** and averaged **227 MB** — every sample well inside the 400 MB budget.
+## What is Rustify?
 
-That is the point of Rustify. It is not another browser with a Spotify tab. It is a small, native Windows shell around the **official** player, with a memory lifecycle that actually returns memory when you stop listening.
+Rustify is an independent, lightweight Windows desktop application that wraps the **official Spotify Web Player** in a native Rust-powered shell.
 
-No Electron bundle. No tab strip. No extension zoo in the default build. No telemetry. No account tricks.
+It combines the familiarity of Spotify with native Windows integration and a memory-conscious WebView2 lifecycle.
 
-## Why it is worth switching
+And starting with **v0.3.0, Rustify includes uBlock Origin Lite**, bringing built-in content filtering directly into the application.
 
-These claims describe the default 0.2.0 build. The experimental uBOL build is covered separately below.
+No Electron. No unnecessary browser interface. No telemetry. Just your music in a lightweight desktop environment.
 
-- **Pause and forget.** After a confirmed pause, Rustify cycles WebView2 back to its low-memory target. In the hidden 10-minute run: **95 MB peak, 60 MB average**. For comparison, Edge with a visible paused window measured **754 MB** on the same machine.
-- **Native where it counts.** Spotify-style caption buttons, real resize edges, tray show/hide, close-to-tray, single-instance activation, remembered window position, and Windows media-session integration.
-- **The official player, not a clone.** Sign-in, playback, DRM, the queue, and ads stay with `open.spotify.com`. Free accounts are verified; Premium accounts use the same official player.
-- **Nothing hiding in the background.** No telemetry. No proxy. No token extraction. No bundled Chromium. No background updater. MIT source.
+## Highlights
 
-## The numbers
+- **Built-in content filtering:** Includes the official, unmodified uBlock Origin Lite extension with its default rulesets.
+- **Lightweight:** Uses Microsoft's WebView2 runtime instead of bundling an entire Chromium browser.
+- **Native Windows experience:** System tray, native window controls, resize edges, and Windows media-session integration.
+- **Free and Premium support:** Uses Spotify's official web player, supporting both account types.
+- **Privacy-conscious:** No Rustify analytics, telemetry, proxying, or credential extraction.
+- **Open source:** Rustify's application code is licensed under MIT.
 
-Measured as **PSS for the complete process tree** on one Windows 11 x64 machine. Lower is better. This is not Task Manager's per-process working set.
+## Features
 
-These are 0.2.0 numbers. The uBOL build has not been re-certified and may use more memory and CPU.
-
-| Whole-tree PSS | **Rustify 0.2.0** | Spotify desktop | Spotify in Edge |
-|---|---:|---:|---:|
-| **Paused** (Rustify hidden) | **95.1 MB peak** / 60.0 MB average | 754.6 MB | 754.2 MB |
-| **Playing, visible** | **263.3 MB peak** / 226.9 MB average | 773.4 MB | 732.7 MB |
-
-Rustify's paused row is the hidden/tray gate; the desktop and Edge paused baselines were measured with visible windows. Hidden windows can release GPU memory, so the paused comparison is directional rather than an identical-state benchmark.
-
-In these tests, Rustify's hidden paused footprint was about **one-eighth of Edge's visible paused footprint**, and its playing footprint was about **one-third of the desktop client's**. Both are full products with their own memory strategies; the comparison is about the same Spotify page, not about missing features. Rustify gets there with the player lifecycle, not by removing Spotify functionality.
-
-The full per-sample data, method, and caveats are in the [0.2.0 certification report](docs/CERTIFICATION_0.2.0.md). The research behind it is in [Performance Research](docs/PERFORMANCE_RESEARCH.md).
-
-## What you get
-
-| Feature | What you get |
+| Feature | Description |
 |---|---|
-| **Player** | Official Spotify Web Player at `open.spotify.com` |
-| **Accounts** | Free and Premium; free-tier sign-in and playback verified |
-| **Audio** | Spotify playback and Widevine — untouched in the default build |
-| **Window** | Spotify-style caption bar, native resize edges, DWM shadow |
-| **Tray** | Show, hide, reload, open data folder, about, quit; close hides to tray |
-| **Windows** | SMTC media session, single instance, saved size/position |
-| **Network** | Spotify and the Cloudflare challenge only; popups and downloads blocked |
-| **Privacy** | No telemetry, no proxy, no credential or token extraction |
-| **Install** | 535 KB per-user installer; no administrator prompt |
-| **Updates** | Manual for now; no auto-update |
+| Spotify Web Player | Official `open.spotify.com` experience |
+| uBlock Origin Lite | Bundled content filtering with default rulesets |
+| Accounts | Spotify Free and Premium |
+| Playback | Official Spotify playback and Widevine DRM |
+| Native window | Custom title bar, resize edges, and DWM shadow |
+| System tray | Show, hide, reload, and quit |
+| Close to tray | Keep Rustify running in the background |
+| Media integration | Windows System Media Transport Controls (SMTC) |
+| Single instance | Prevents multiple application instances |
+| Window persistence | Remembers window size and position |
+| Privacy | No Rustify telemetry or analytics |
+| Installation | Per-user installation without administrator privileges |
 
-The default build also hides the **Explore Premium** button and **Install App** link in the nav bar with one scoped stylesheet. That is its only page change. It is cosmetic, disclosed, and does not touch playback, ads, DRM, or network traffic. The uBOL build adds request filtering on top.
+## Content filtering with uBlock Origin Lite
 
-## Experimental uBOL build
+<sub>Introduced in v0.3.0</sub>
 
-`v0.3.0-pre.1` is a separate pre-release for people who want content filtering. It bundles unmodified **uBlock Origin Lite 2026.1124.1811** and loads it into the Spotify profile by default.
+Rustify v0.3.0 bundles **uBlock Origin Lite (uBOL)**, the official, unmodified Chromium extension developed by Raymond Hill and contributors.
 
-- Installer: `Rustify-0.3.0-x64-setup.exe`, 6.7 MB.
-- Default uBOL rulesets are active; WebView2 has no extension popup or dashboard.
-- Not re-certified. The 0.2.0 memory, CPU, and startup numbers do not apply.
-- Spotify audio ads may still play. uBOL blocks many trackers and page requests, but it is not a guaranteed ad-free Spotify.
-- Uses the same `%LOCALAPPDATA%\Rustify` profile. Reverting to 0.2.0 leaves uBOL registered in that profile but does not load it.
-- uBOL is GPL-3.0, not MIT. The installer includes its licence and source information.
+Unlike a separate browser extension installation, uBOL is bundled with Rustify and loaded automatically into its WebView2 environment.
 
-[Download v0.3.0-pre.1](https://github.com/new-Sinote/Rustify/releases/tag/v0.3.0-pre.1) · [Release notes](docs/releases/v0.3.0-pre.1.md) · [Research and caveats](docs/UBOL_INTEGRATION_RESEARCH.md)
+### How it works
 
-## Install in about a minute
+- The official uBOL extension is included with the application.
+- Its default filtering rulesets are enabled.
+- The extension is installed automatically alongside Rustify.
+- No separate browser or extension installation is required.
 
-1. **[Download the latest release](https://github.com/new-Sinote/Rustify/releases/latest)** — `Rustify-0.2.0-x64-setup.exe`.
-2. Run it. It installs per-user, with no administrator prompt.
-3. Windows SmartScreen will warn because the installer is unsigned. Choose **More info → Run anyway**.
-4. Launch **Rustify** and sign in at `open.spotify.com`.
+### Important limitations
 
-**Requirements:** Windows 10/11 x64 (certified on Windows 11 x64), the Evergreen WebView2 Runtime (already present on current Windows builds), and a Spotify account.
+- Rustify does not guarantee a completely ad-free Spotify experience. Spotify audio advertisements may still play.
+- WebView2 does not expose uBOL's normal extension popup, dashboard, or per-site settings interface.
+- The bundled extension does not update independently. Updates require a new Rustify release.
+- Content filtering changes network request behaviour. Spotify account and service policies still apply.
 
-**Uninstall:** Settings → Apps → Rustify. The uninstaller asks whether to delete your local profile; a silent uninstall keeps it.
+### Third-party licensing
 
-> **Before you download:** Rustify is unsigned, has no auto-update, and is Windows-only. The default build plays ads normally; the uBOL build filters requests but may still play audio ads. If those are deal-breakers, this build is not for you yet.
+uBlock Origin Lite is licensed under GPL-3.0. Its licence and source information are distributed with the installer.
 
-## Proof, not promises
+Rustify's own application code remains MIT licensed.
 
-| Release gate | Target | Rustify 0.2.0 |
-|---|---:|---|
-| Paused PSS, 10-minute hidden run | ≤ 300 MB | **95.1 MB peak** |
-| Playing PSS, every 5-minute soak sample | ≤ 400 MB | **263.3 MB peak** |
-| Paused CPU | ≤ 1% of one core | **0.32% mean**; 0.24–0.39% sustained |
-| Idle CPU | ≤ 0.5% of one core | **0.24–0.39%** sustained |
-| Window ready | ≤ 500 ms | **272 ms** warm; 271 ms fresh profile |
-| Installer | — | **534,512 bytes** |
+## Performance
 
-One 10-second CPU sample touched 1.05%; two 60-second steady-state windows afterward measured 0.24% and 0.39%. The certification report keeps that transient visible rather than hiding it. The first launch on a machine where the WebView2 runtime had never been initialized once measured 652 ms; normal starts and fresh-profile starts measured 271–288 ms.
+Rustify was designed around a simple idea: a paused music player shouldn't need to consume hundreds of megabytes indefinitely.
+
+The following results were measured on a Windows 11 x64 test machine using **Proportional Set Size (PSS)** across the complete process tree.
+
+<sub>These are v0.2.0 benchmark results, not v0.3.0 certification results.</sub>
+
+| Measurement | Rustify 0.2.0 | Spotify Desktop | Spotify in Edge |
+|---|---:|---:|---:|
+| Paused, hidden peak | **95.1 MB** | 754.6 MB | 754.2 MB |
+| Playing peak | **263.3 MB** | 773.4 MB | 732.7 MB |
+| Paused average | **60.0 MB** | — | — |
+| Playing average | **226.9 MB** | — | — |
+
+### Additional v0.2.0 measurements
+
+| Metric | Result |
+|---|---:|
+| Paused CPU average | 0.32% |
+| Idle CPU | 0.24–0.39% |
+| Warm window readiness | 272 ms |
+| Fresh-profile readiness | 271 ms |
+| Installer size | 534,512 bytes |
+
+**A note on performance:** The benchmarks above apply exclusively to v0.2.0. The addition of uBlock Origin Lite in v0.3.0 changes the application's runtime behaviour, so these numbers should not be interpreted as measurements of the current release.
+
+For the full methodology, test results, and limitations, see:
+
+- [v0.2.0 Certification Report](docs/CERTIFICATION_0.2.0.md)
+- [Performance Research](docs/PERFORMANCE_RESEARCH.md)
+
+## Installation
+
+### Requirements
+
+- Windows 10 or Windows 11 (64-bit).
+- Microsoft Edge WebView2 Evergreen Runtime.
+- A Spotify account (Free or Premium).
+
+### Getting started
+
+1. Download the latest installer from [GitHub Releases](https://github.com/new-Sinote/Rustify/releases/latest).
+2. Run `Rustify-0.3.0-x64-setup.exe`.
+3. Complete the installation. Administrator privileges are not required.
+4. Launch Rustify.
+5. Sign in using your Spotify account.
+
+uBlock Origin Lite is included and loaded automatically.
+
+### Windows SmartScreen
+
+Rustify is currently unsigned. Windows SmartScreen may display an unknown publisher warning.
+
+You can verify the installer against the SHA-256 checksum published with the release before running it.
+
+### Uninstallation
+
+Navigate to:
+
+`Settings → Apps → Installed apps → Rustify`
+
+The uninstaller will ask whether you want to remove your local application profile and settings.
 
 ## How it works
 
-```mermaid
-flowchart LR
-    shell["Rust shell<br/>tao + wry + WebView2"]
-    bar["40 px chrome WebView<br/>caption buttons"]
-    webview["Player WebView<br/>Evergreen runtime"]
-    page["Official Spotify Web Player<br/>open.spotify.com"]
-    media["Spotify playback<br/> - Widevine"]
-    windows["Windows integration<br/>window - tray - SMTC"]
+Rustify uses a native Rust application shell built around `wry`, `tao`, and Microsoft's WebView2 runtime.
 
-    shell --> bar
-    shell --> webview
-    webview --> page
-    page --> media
-    shell --> windows
+```mermaid
+flowchart TD
+    A["Rustify · Rust application"] --> B["Native Windows shell"]
+    A --> C["WebView2 environment"]
+    C --> D["Official Spotify Web Player"]
+    C --> E["uBlock Origin Lite"]
+    D --> F["Spotify playback and Widevine"]
+    B --> G["System tray and Windows integration"]
+    E --> H["Content filtering"]
 ```
 
-In the default build, the shell never proxies Spotify traffic or touches the audio path. Apart from the disclosed nav-bar rule, the page runs as Spotify ships it. The uBOL build adds declarative request filtering through uBlock Origin Lite. `MemoryUsageTargetLevel.Low` is applied after hydration, after a confirmed pause, every 120 seconds, and after short track/ad gaps. The result is a player that behaves like a normal Windows app instead of a browser tab that never gives memory back.
+The application hosts Spotify's official web player rather than implementing its own playback engine.
 
-## FAQ
+uBlock Origin Lite provides declarative content filtering through the WebView2 extension environment.
 
-**Is this an official Spotify app?**  
-No. Rustify is an independent, unofficial host. It is not affiliated with, endorsed by, or supported by Spotify AB.
+Rustify does not proxy Spotify traffic, extract account credentials, or re-stream audio.
 
-**Does it block ads?**  
-The default 0.2.0 build does not. Ads are served by Spotify and play normally, including on free accounts.  
-The experimental 0.3.0 uBOL build includes uBlock Origin Lite's default filtering. It blocks many trackers and page requests, but Spotify audio ads may still play, and ad behaviour is not guaranteed. It is not certified and carries 
+## Privacy and security
 
-**Will this get my account banned?**  
-The default build does not alter playback, extract tokens, or use undocumented APIs. It hosts the official web player. The uBOL build does alter network requests, so treat its account risk as higher. Either way, Rustify is an unofficial client, so use remains subject to Spotify's terms.
+Privacy is an important part of Rustify's design.
 
-**Why does Task Manager show more memory?**  
-Task Manager usually shows each process separately and reports working set, which includes shared pages. The budgets use PSS across the whole process tree. See the [certification report](docs/CERTIFICATION_0.2.0.md) for the exact method.
+- **No telemetry:** Rustify does not add analytics or usage tracking.
+- **No credential extraction:** Login and authentication remain within Spotify's official web player.
+- **No proxy:** Rustify does not route Spotify traffic through external servers.
+- **No audio interception:** Playback remains within Spotify's official player.
+- **Local profile:** Application data is stored locally on your Windows machine.
 
-**Does it work with a free account?**  
-Yes. Free-account sign-in and playback were verified in the default build.; the uBOL build may filter some requests but may still play audio ads.
+### Security scanning
 
-**Why is the installer unsigned?**  
-Code signing is not set up yet, so SmartScreen warns about an unknown publisher. Verify the SHA-256 checksum attached to the release before running it.
+Want to inspect the repository before installing?
 
-**Does it work on macOS or Linux?**  
-No. Windows 10/11 x64 only.
+<a href="https://www.scanrepo.dev/scan/github/new-Sinote/Rustify"><img src="https://img.shields.io/badge/Scan_repository_with-ScanRepo-181717?style=for-the-badge&logo=github&logoColor=white" alt="Scan repository with ScanRepo"></a>
 
-**Can I use Spicetify with it?**  
-No. Spicetify patches the installed Spotify desktop client. Rustify hosts the web player; there is nothing to patch.
+[Open the Rustify ScanRepo report](https://www.scanrepo.dev/scan/github/new-Sinote/Rustify)
 
-<details>
-<summary><strong>Build from source, repository layout, and the benchmark harness</strong></summary>
+Security scanning results are provided by ScanRepo and should be considered alongside your own review of the source code and release artifacts.
 
-### Shipping shell
+## Frequently asked questions
+
+**Is Rustify an official Spotify application?**
+
+No. Rustify is an independent, unofficial application. It is not affiliated with, endorsed by, or supported by Spotify AB.
+
+**Does Rustify support Spotify Free?**
+
+Yes. Rustify uses the official Spotify Web Player and supports both Free and Premium accounts.
+
+**Does Rustify include an ad blocker?**
+
+Yes. Since v0.3.0, Rustify bundles the official uBlock Origin Lite extension. Its default filtering rulesets are enabled automatically.
+
+However, this does not guarantee that all advertisements, particularly Spotify audio advertisements, will be blocked.
+
+**Do I need to install uBlock Origin separately?**
+
+No. uBlock Origin Lite is bundled with Rustify and installed automatically.
+
+**Does uBlock Origin Lite have its settings interface?**
+
+Not currently. WebView2 does not expose the extension's standard popup or dashboard interface in Rustify.
+
+**Does Rustify collect my data?**
+
+Rustify itself does not implement telemetry, analytics, or usage tracking. Spotify still processes the information associated with your Spotify account and use of its service.
+
+**Will Rustify work on macOS or Linux?**
+
+No. Rustify currently targets Windows 10/11 x64.
+
+**Does Rustify support automatic updates?**
+
+No. Updates are currently distributed manually through GitHub Releases.
+
+**Can I use Spicetify with Rustify?**
+
+No. Spicetify modifies the installed Spotify desktop application, whereas Rustify hosts the Spotify Web Player.
+
+## Building from source
+
+### Prerequisites
+
+- Rust toolchain.
+- Windows 10/11 x64.
+- Microsoft WebView2 Evergreen Runtime.
+- NSIS 3 or later (for installer generation).
+
+### Build the application
 
 ```powershell
 cd app
 cargo build --release
-.\target\release\rustify.exe
 ```
 
-The default binary has no CDP port and no `--url`, `--profile`, `--log`, or test flags. Those are compiled only with the `bench` feature:
-
-```powershell
-cargo build --release --features bench
-.\target\release\rustify.exe --cdp 9222
-```
-
-To build the experimental uBOL variant:
+### Build with uBlock Origin Lite
 
 ```powershell
 cargo build --release --features ublock
 ```
 
-It loads `extensions\ublock` next to the executable, or a folder supplied with `--ublock-ext` / `RUSTIFY_UBLOCK_EXT`.
+The extension payload is loaded from `extensions\ublock` alongside the executable, or from a directory specified using `--ublock-ext` or `RUSTIFY_UBLOCK_EXT`.
 
-### Installer
+### Build the benchmark configuration
+
+```powershell
+cargo build --release --features bench
+```
+
+### Build the installer
 
 ```powershell
 .\app\installer\build.ps1
 ```
 
-The script downloads and verifies uBOL 2026.1124.1811, builds with the `ublock` feature, and produces the 0.3.0 experimental installer. The setup and `SHA256SUMS.txt` land in `app\dist\`. It needs `makensis.exe` (NSIS 3+), creates Start Menu and desktop shortcuts, and registers the uninstaller under `HKCU`. Pass `-SkipUblockFetch` to reuse an already staged payload.
+The installer build script downloads and verifies the pinned uBlock Origin Lite payload, builds the application, and generates the Windows installer and SHA-256 checksums.
 
-### Bench host
+For additional development information, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```powershell
-cd bench\wryhost
-cargo build --release
-.\target\release\wryhost.exe --url https://open.spotify.com/ --data-dir "$env:LOCALAPPDATA\RustifyBench"
-```
-
-Useful benchmark flags: `--memory-low`, `--cdp <port>`, `--toggle-file <path>`, `--browser-args "<args>"`, `--hide-on-close`, `--hide-upsells`, and `--custom-chrome`.
-
-### Repository layout
+## Repository structure
 
 ```text
-app/                Shipping shell: wry + tao + WebView2, installer, assets.
-  src/main.rs       Window, chrome, tray, allowlist, memory policy.
-  installer/        NSIS per-user installer, uBOL fetch script and staged payload.
-bench/
-  wryhost/          Minimal wry + tao + WebView2 host. The Phase 4 baseline.
-  tauri-shell/      Blank Tauri 2 shell used for the framework comparison.
-  measure/          PowerShell and CDP measurement harness.
-  results/          Sanitized per-sample memory data from the Phase 4 soaks.
-spike/
-  src-tauri/        Phase 3 Tauri 2 spike. Superseded; kept for the record.
-docs/
-  CERTIFICATION_0.2.0.md
-  PERFORMANCE_RESEARCH.md
-  UBOL_INTEGRATION_RESEARCH.md
-  PHASE-0-2-REPORT.md
-  PHASE-3-SPIKE.md
-  releases/         Release notes for published builds, including v0.3.0-pre.1.
+Rustify/
+├── app/
+│   ├── src/
+│   │   └── main.rs
+│   ├── installer/
+│   └── assets/
+├── bench/
+│   ├── wryhost/
+│   ├── tauri-shell/
+│   ├── measure/
+│   └── results/
+├── docs/
+│   ├── CERTIFICATION_0.2.0.md
+│   ├── PERFORMANCE_RESEARCH.md
+│   ├── UBOL_INTEGRATION_RESEARCH.md
+│   └── releases/
+├── spike/
+├── LICENSE
+├── CONTRIBUTING.md
+└── README.md
 ```
-
-### Measurement harness
-
-`bench/measure/` contains the scripts used for the reports:
-
-- `tree-metrics.ps1` — PSS, working set, private commit, GPU memory, and CPU for a process tree.
-- `cdp-metrics.mjs` — JS heap, DOM counters, and page state over the DevTools Protocol.
-- `smtc.ps1` — Windows media-session status and position.
-- `soak.ps1` — 35-minute playing soak with 5-minute samples.
-- `hidden-soak.ps1` — 10-minute paused/hidden run with 1-minute samples.
-- `cdp-chrome-check.mjs` — verifies the caption bar and the hidden upsell elements.
-- `cdp-pause.mjs` — pauses the player before the hidden/paused run.
-
-The scripts were written for the original test machine and contain `C:\Rustify\...` paths. Adjust those paths (or run from `C:\Rustify`) before using them elsewhere. They measure; they do not modify the Spotify page or audio path.
-
-</details>
-
-## Privacy and scope
-
-- **No Rustify telemetry.** The app adds no analytics, crash uploads, or tracking. In the default build, Spotify sees the same web-player traffic it would see in a browser; the uBOL build filters some requests.
-- **Local profile.** The WebView2 profile lives in `%LOCALAPPDATA%\Rustify\WebView2`; the diagnostic log is `%LOCALAPPDATA%\Rustify\rustify.log`.
-- **Nothing extracted.** Rustify does not handle your password, extract session tokens, proxy traffic, or re-stream audio.
-- **One cosmetic page rule in the default build.** A scoped stylesheet hides the two nav-bar upsells. It does not touch playback, DRM, or requests. The uBOL build adds request filtering.
-- **Default build: Rustify is a host, not an ad blocker or a modified client. The experimental uBOL build is the disclosed exception.
-
-Browser profiles, cookies, screenshots, raw soak/SMTC logs, and track or playlist metadata are excluded from this repository.
-
-Rustify is not affiliated with Spotify AB. "Spotify" and the Spotify logo are trademarks of Spotify AB. The MIT licence covers this repository's code, not Spotify's trademarks, content, or services. Using Rustify requires a Spotify account and remains subject to Spotify's terms.
 
 ## Contributing
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)**. Keep the default build's official playback path intact. Ad-blocking experiments belong behind the `ublock` feature and an experimental release, not the default installer. Do not submit DRM-circumvention or credential-handling changes.
+Contributions, suggestions, and bug reports are welcome.
 
-## Licence
+Before submitting changes, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Rustify's own code is MIT. See **[LICENSE](LICENSE)**. The bundled uBOL payload in the experimental installer is GPL-3.0; its licence and source information are included with that build.
+Rustify aims to remain lightweight, transparent, privacy-conscious, and open source.
+
+## Licensing
+
+Rustify's original application code is licensed under the **MIT License**.
+
+The bundled uBlock Origin Lite extension is separately licensed under **GPL-3.0**. Its original licence and source information are included with the distribution.
+
+See [LICENSE](LICENSE) for Rustify's licence.
+
+---
+
+<p align="center">
+  <strong>Built with Rust. Made for Windows. Powered by Spotify.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/new-Sinote/Rustify">GitHub Repository</a> ·
+  <a href="https://github.com/new-Sinote/Rustify/releases">Releases</a> ·
+  <a href="https://github.com/new-Sinote/Rustify/issues">Report an Issue</a> ·
+  <a href="https://www.scanrepo.dev/scan/github/new-Sinote/Rustify">Security Scan</a>
+</p>
