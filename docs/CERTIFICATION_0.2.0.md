@@ -1,5 +1,7 @@
 # Rustify 0.2.0 - Certification
 
+> **Historical certification - 0.2.0 only.** This report certifies the published v0.2.0-pre.1 build under the old "ads untouched" contract. The owner changed the product direction on 2026-11-26: adblocking is now a first-class requirement. This report does **not** certify any adblocking build. A new certification is required before an adblocking build can be called stable. See [ADR-0001](ADR-0001-adblocking-direction.md) and [ADBLOCKING_RESEARCH.md](ADBLOCKING_RESEARCH.md).
+
 **Build:** Rustify 0.2.0 (`wry` 0.57.4 + `tao` 0.37.3, WebView2 Evergreen)  
 **Date:** 2026-11-26  
 **Machine:** Windows 11 x64 (build 26300), 16 logical cores, 2560x1440  
@@ -75,6 +77,8 @@ Method: pause from the player control, hide the window with the custom close but
 - **Install test:** silent install, Start Menu and desktop shortcuts, `HKCU` uninstall entry, installed launch, and silent uninstall all passed. The silent uninstaller keeps the WebView2 profile and settings.
 
 ## 7. Scope
+
+> **Historical scope.** The ads-untouched statements below describe v0.2.0 only. They are not current product requirements and do not apply to any adblocking build.
 
 Rustify hosts the official web player. It does not block, skip, mute, filter, proxy, or re-stream advertisements; it does not circumvent DRM, extract audio, extract credentials or tokens, or call undocumented Spotify APIs. The only page change is a stylesheet that hides the `Explore Premium` button and the `Install App` link in the nav bar. Playback, ads, DRM, and network traffic are untouched.
 

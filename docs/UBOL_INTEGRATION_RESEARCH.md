@@ -4,6 +4,8 @@
 **Date:** 2026-11-26  
 **Status:** Published as an experimental pre-release (`v0.3.0-pre.1`). The default 0.2.0 build remains clean and certified.
 
+> **Product-direction update (2026-11-26):** Adblocking is now a first-class requirement on `feature/adblocking`. Statements below that describe "ads untouched" as Rustify's current contract are historical and apply to the stable 0.2.0 build only. This document remains the uBOL layer research for the adblocking branch. See [ADR-0001](ADR-0001-adblocking-direction.md) and [ADBLOCKING_RESEARCH.md](ADBLOCKING_RESEARCH.md).
+
 > **Release update (2026-11-26):** The owner approved shipping this as an experimental pre-release. `v0.3.0-pre.1` bundles the pinned uBOL payload and enables it by default; see [release notes](releases/v0.3.0-pre.1.md). The default 0.2.0 build and its certification are unchanged. The analysis below records why this stays out of the default build.
 
 ---
@@ -23,7 +25,7 @@ The runtime test was successful:
 
 **It should not ship as the default build.** The blockers are product, policy, licensing, and maintenance—not the WebView2 API:
 
-1. **It reverses Rustify's contract.** Rustify promises the official player with ads untouched. uBOL exists to block ads and trackers; loading it is an intentional behavioral change, even if modern Spotify audio ads turn out to be server-side inserted.
+1. **It reverses the 0.2.0 contract.** The stable 0.2.0 build promises the official player with ads untouched. uBOL exists to block ads and trackers; loading it is an intentional behavioral change, even if modern Spotify audio ads turn out to be server-side inserted. Under the 2026-11-26 direction, this is an accepted layer rather than a reason to reject the work.
 2. **It carries Spotify ToS and account risk.** Rustify's current positioning depends on not interfering with playback or ads. A bundled or silently enabled blocker removes that distinction.
 3. **uBOL is GPL-3.0.** Bundling it changes distribution obligations. The MIT app can potentially remain MIT if uBOL is a separate work, but that is a legal question, not an engineering shortcut.
 4. **WebView2 has no extension UI.** uBOL's popup, dashboard, badge, and permission surfaces have no host. Default filtering works; configuration does not, unless Rustify builds its own settings surface.
@@ -241,7 +243,7 @@ uBOL did not add a persistent process in the hidden state, and it did not increa
 
 ### 1. Product contract and Spotify terms
 
-Rustify's default 0.2.0 contract is explicit: official Spotify Web Player, ads play untouched, no ad blocking or filtering. uBOL is a content blocker. Even if it fails to remove Spotify's audio ads today, it blocks telemetry and display requests and is intended to block ads. The experimental 0.3.0-pre.1 build is the disclosed exception; it does not change the default contract, but it does change its Spotify ToS risk.
+Rustify's historical 0.2.0 contract was explicit: official Spotify Web Player, ads play untouched, no ad blocking or filtering. uBOL is a content blocker. Even if it fails to remove Spotify's audio ads today, it blocks telemetry and display requests and is intended to block ads. The experimental 0.3.0-pre.1 build was the disclosed exception at the time. Under the 2026-11-26 direction, uBOL is a candidate filtering layer for the adblocking branch, and it still changes Spotify ToS risk.
 
 The existing certification recorded ad rows during the 35-minute soak. Those rows are part of the evidence that the official playback path is untouched. A uBOL build invalidates that evidence for the uBOL build; the 0.2.0 certification remains valid for 0.2.0.
 
@@ -382,4 +384,4 @@ A successful test looks like six enabled rulesets and a matched rule for the tra
 
 ## Bottom line
 
-The engineering question is answered: **uBOL can be loaded into Rustify's current architecture with a small, feature-gated change.** The product question is a deliberate owner decision: `v0.3.0-pre.1` ships it as an experimental pre-release, while the default 0.2.0 build keeps the ads-untouched contract. The compatibility, licensing, UI, and certification costs are real. Users who need the certified behavior should stay on 0.2.0.
+The engineering question is answered: **uBOL can be loaded into Rustify's current architecture with a small, feature-gated change.** The product question was a deliberate owner decision: `v0.3.0-pre.1` shipped it as an experimental pre-release, while the 0.2.0 build kept the ads-untouched contract at the time. Under the 2026-11-26 direction, uBOL is a candidate filtering layer for the adblocking branch. The compatibility, licensing, UI, and certification costs are real. Users who need the certified behavior should stay on 0.2.0.

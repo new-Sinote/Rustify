@@ -1,4 +1,6 @@
-# Rustify — Phase 0–2 Feasibility Report and Design
+# Rustify - Phase 0-2 Feasibility Report and Design
+
+> **Historical document - superseded constraint.** This report was written when "ads intact" was a product requirement. On 2026-11-26 the owner made adblocking a first-class requirement. The ads-intact statements below are historical and must not be used to reject adblocking work. See [ADR-0001](ADR-0001-adblocking-direction.md) and [ADBLOCKING_RESEARCH.md](ADBLOCKING_RESEARCH.md).
 
 **Date:** 2026-11-25  
 **Status:** Awaiting approval. No production code has been written.  

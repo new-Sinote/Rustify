@@ -7,6 +7,8 @@
 
 > **Final answer:** yes. Use WebView2, leave Spotify's player in charge, and drive `MemoryUsageTargetLevel.Low` as a lifecycle rather than a one-shot setting. The shipping `wry` + `tao` shell measured **95.1 MB peak paused**, **263.3 MB peak playing**, **272 ms window-ready**, and **0.24–0.39% sustained paused CPU**. The full gate report is [CERTIFICATION_0.2.0.md](CERTIFICATION_0.2.0.md).
 
+> **Historical baseline - superseded product requirement.** This document records the 0.2.0 measurements and the old ads-untouched decision. On 2026-11-26 the owner made adblocking a first-class requirement. The 0.2.0 numbers remain the baseline for 0.2.0, but they do not certify any adblocking build. See [ADR-0001](ADR-0001-adblocking-direction.md) and [ADBLOCKING_RESEARCH.md](ADBLOCKING_RESEARCH.md).
+
 ## 1. Executive summary
 
 The engine question was settled early: a WebView2 host is the only tested architecture that can run the official Spotify Web Player with Widevine, background playback, and untouched ads while staying near the memory budgets. The difficult part was not the Rust framework. It was the page's tendency to refill cache after every trim.
@@ -503,37 +505,39 @@ cargo build --release --features bench --manifest-path app\Cargo.toml
 
 The raw soak output contains local process data and Spotify metadata. It is kept out of the public repository by `.gitignore`; only the aggregated, title-free numbers are published.
 
-## Appendix A — Rejected features: Spicetify and ad blocking
+## Appendix A - Historical evaluation: Spicetify and ad blocking
 
-These were evaluated at the user's request and are **not supported**. The Phase 0–2 allowlist and acceptance criteria require the official web player, intact advertisements, and no general page injection, extensions, proxies, or modified clients. The shipped upsell CSS is a single documented cosmetic exception, not a precedent for ad blocking.
+> **Superseded.** This appendix records the 0.2.0-era evaluation. Adblocking is now a first-class requirement on `feature/adblocking`. The risks below still matter, but they are no longer a prohibition.
+
+These were evaluated at the user's request and were **not supported in 0.2.0**. The Phase 0-2 allowlist and acceptance criteria required the official web player, intact advertisements, and no general page injection, extensions, proxies, or modified clients. The shipped upsell CSS was a single documented cosmetic exception, not a precedent for ad blocking.
 
 ### A.1 Spicetify
 
 Spicetify is a CLI that customizes the **official desktop client** by patching its installed `xpui.spa` bundle on Windows, macOS, and Linux, and it must be re-applied after each Spotify update ([getting started](https://spicetify.app/docs/getting-started), [FAQ](https://spicetify.app/docs/faq)). Rustify hosts `https://open.spotify.com` in WebView2; there is no `xpui.spa` and no desktop-client UI to patch.
 
-“Support” would therefore require one of:
+"Support" would therefore require one of:
 
-- switching Rustify to launch or patch the desktop client instead of hosting the web player — a different product, with the measured 673–773 MB PSS baseline and recurring update breakage; or
-- reimplementing Spicetify-style injection against the web player — general page injection, which is explicitly prohibited.
+- switching Rustify to launch or patch the desktop client instead of hosting the web player - a different product, with the measured 673-773 MB PSS baseline and recurring update breakage; or
+- reimplementing Spicetify-style injection against the web player - still out of scope for the web-player shell.
 
-Spicetify's Marketplace also offers the `adblockify` extension, which is ad blocking and falls under the same prohibition.
+Spicetify's Marketplace also offers the `adblockify` extension. It is not a code source for Rustify; adblocking work is independently implemented under the current product direction.
 
 ### A.2 Ad blocking
 
-WebView2 has no supported ad-block API. The technical routes are:
+WebView2 has no single supported ad-block API. The technical routes and their current status are:
 
-| Route | Why it is rejected |
+| Route | Risk and current status |
 |---|---|
-| `WebResourceRequested` host filtering | Ads share Spotify CDN and playback infrastructure with tracks; filtering is brittle, detectable, and can break audio or DRM. It is also a product-level ad blocker. |
-| Script/CSS injection | Hides ad UI but does not stop audio ads; general injection is prohibited. |
-| Edge extension (uBlock Origin) | Not available in the 0.2.0 WebView2 shell and prohibited by the product contract; revisited for the experimental 0.3.0 build. |
-| DNS/proxy/MITM filtering | Machine-wide, breaks other applications, weakens security; prohibited. |
+| `WebResourceRequested` host filtering | Ads share Spotify CDN and playback infrastructure with tracks; filtering is brittle, detectable, and can break audio or DRM. Under evaluation for native filtering with a fail-open path. |
+| Script/CSS injection | Hides ad UI but does not stop audio ads; general injection remains out of scope. The existing nav-bar rule is the only stable cosmetic change. |
+| Edge extension (uBlock Origin) | Available through WebView2 extensions; shipped as the 0.3.0 uBOL experiment. GPL-3.0; not proven to remove current audio ads. |
+| DNS/proxy/MITM filtering | Machine-wide, breaks other applications, weakens security; still prohibited. |
 
 The free tier is ad-supported. Spotify's terms restrict modifying the client and circumventing restrictions, and modified or blocking setups carry account risk. Ad blocking also does not help the memory budgets: an extension or filter list is a few MB, while the page and Chromium dominate.
 
-**Decision:** ads play untouched in 0.2.0, as specified. If the product requirements are ever changed to allow ad blocking or client modification, that work must be scoped as a separate experiment outside Rustify, with the ToS/account and breakage risks explicitly accepted; it is not part of 0.2.0.
+**Historical decision:** ads played untouched in 0.2.0, as specified. **Current decision (2026-11-26):** adblocking is a first-class requirement. Work is on `feature/adblocking`, must preserve playback/DRM/auth, must fail open, and requires a new certification. The 0.2.0 numbers above do not apply to it.
 
-> **Update for 0.3.0-pre.1:** WebView2 now supports unpacked extensions, so the decision was revisited. The experimental uBOL build adds uBlock Origin Lite and is not covered by the 0.2.0 certification above. See [UBOL_INTEGRATION_RESEARCH.md](UBOL_INTEGRATION_RESEARCH.md) and the [0.3.0-pre.1 release notes](releases/v0.3.0-pre.1.md).
+> **Update for 0.3.0-pre.1:** WebView2 supports unpacked extensions, so the decision was revisited. The experimental uBOL build adds uBlock Origin Lite and is not covered by the 0.2.0 certification above. See [UBOL_INTEGRATION_RESEARCH.md](UBOL_INTEGRATION_RESEARCH.md) and the [0.3.0-pre.1 release notes](releases/v0.3.0-pre.1.md).
 
 ## Appendix B — Bench-only experiments
 

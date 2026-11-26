@@ -1,4 +1,6 @@
-# Rustify Phase 3 — Windows DRM / Background Playback Spike
+# Rustify Phase 3 - Windows DRM / Background Playback Spike
+
+> **Historical document - superseded constraint.** This spike tested the old ads-intact contract. On 2026-11-26 the owner made adblocking a first-class requirement. The ad playback result below is a historical baseline, not a current requirement. See [ADR-0001](ADR-0001-adblocking-direction.md) and [ADBLOCKING_RESEARCH.md](ADBLOCKING_RESEARCH.md).
 
 **Date:** 2026-11-25  
 **Status:** Spike run complete. Phase 4 addendum at the end supersedes the memory verdict.  

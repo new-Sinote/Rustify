@@ -19,6 +19,8 @@ use webview2_com::{
     IsDocumentPlayingAudioChangedEventHandler,
     Microsoft::Web::WebView2::Win32::{ICoreWebView2, ICoreWebView2_8},
 };
+#[cfg(feature = "adblock")]
+use webview2_com::{take_pwstr, DocumentTitleChangedEventHandler};
 #[cfg(feature = "ublock")]
 use webview2_com::{
     Microsoft::Web::WebView2::Win32::{ICoreWebView2Profile7, ICoreWebView2_13},
@@ -56,6 +58,10 @@ const TRIM_INTERVAL: Duration = Duration::from_secs(120);
 const POST_GAP_TRIM: Duration = Duration::from_secs(15);
 const SHORT_GAP: Duration = Duration::from_secs(20);
 const TRIM_RESTORE: Duration = Duration::from_millis(300);
+#[cfg(feature = "adblock")]
+const AD_WATCHDOG: Duration = Duration::from_secs(120);
+#[cfg(feature = "adblock")]
+const AD_RETRY: Duration = Duration::from_secs(5);
 
 static APP_START: OnceLock<Instant> = OnceLock::new();
 static LOG: OnceLock<Mutex<fs::File>> = OnceLock::new();
@@ -166,6 +172,8 @@ enum UserEvent {
     OpenDataFolder,
     PageLoaded,
     AudioChanged(bool),
+    #[cfg(feature = "adblock")]
+    AdState(bool),
 }
 
 struct Policy {
@@ -305,6 +313,85 @@ impl Policy {
         set_level(main, bar, MemoryUsageLevel::Normal, "normal");
         self.trim_low_due = Some(Instant::now() + TRIM_RESTORE);
         self.periodic_due = Instant::now() + self.trim_interval;
+    }
+}
+
+#[cfg(feature = "adblock")]
+struct AdGuard {
+    active: bool,
+    watchdog_due: Option<Instant>,
+}
+
+#[cfg(feature = "adblock")]
+impl AdGuard {
+    fn new() -> Self {
+        Self {
+            active: false,
+            watchdog_due: None,
+        }
+    }
+
+    fn on_state(&mut self, is_ad: bool, webview: &WebView) {
+        if is_ad == self.active {
+            return;
+        }
+        self.active = is_ad;
+        if is_ad {
+            if set_muted(webview, true) {
+                self.watchdog_due = Some(Instant::now() + AD_WATCHDOG);
+                log("adblock=ad_start muted");
+            } else {
+                self.active = false;
+                self.watchdog_due = None;
+                log("adblock=ad_start mute_failed; fail-open");
+            }
+        } else {
+            self.unmute(webview, "adblock=ad_end unmuted");
+        }
+    }
+
+    fn on_page_loaded(&mut self, webview: &WebView) {
+        self.active = false;
+        self.unmute(webview, "adblock=page_load unmuted");
+    }
+
+    fn unmute(&mut self, webview: &WebView, success_message: &str) {
+        if set_muted(webview, false) {
+            self.watchdog_due = None;
+            log(success_message);
+        } else {
+            self.watchdog_due = Some(Instant::now() + AD_RETRY);
+            log("adblock=unmute_failed; retry scheduled");
+        }
+    }
+
+    fn tick(&mut self, webview: &WebView) {
+        let Some(due) = self.watchdog_due else {
+            return;
+        };
+        if Instant::now() < due {
+            return;
+        }
+        if self.active {
+            self.active = false;
+            if set_muted(webview, false) {
+                self.watchdog_due = None;
+                log("adblock=watchdog_unmute");
+            } else {
+                self.watchdog_due = Some(Instant::now() + AD_RETRY);
+                log("adblock=watchdog_unmute_failed; retry scheduled");
+            }
+        } else if set_muted(webview, false) {
+            self.watchdog_due = None;
+            log("adblock=unmute_retry_ok");
+        } else {
+            self.watchdog_due = Some(Instant::now() + AD_RETRY);
+            log("adblock=unmute_retry_failed");
+        }
+    }
+
+    fn next_deadline(&self) -> Option<Instant> {
+        self.watchdog_due
     }
 }
 
@@ -570,6 +657,11 @@ fn run() -> Result<(), Box<dyn Error>> {
         log(format!("audio_watch_error={error}"));
     }
 
+    #[cfg(feature = "adblock")]
+    if let Err(error) = watch_adblock(&webview, proxy.clone()) {
+        log(format!("adblock_watch_error={error}"));
+    }
+
     if start_maximized {
         window.set_maximized(true);
     }
@@ -599,6 +691,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         Duration::from_secs(pause_sec),
         Duration::from_secs(gap_sec),
     );
+    #[cfg(feature = "adblock")]
+    let mut adguard = AdGuard::new();
     let mut last_maximized = window.is_maximized();
 
     event_loop.run(move |event, _, control_flow| {
@@ -685,9 +779,15 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
             Event::UserEvent(UserEvent::PageLoaded) => {
                 policy.on_page_loaded();
+                #[cfg(feature = "adblock")]
+                adguard.on_page_loaded(&webview);
             }
             Event::UserEvent(UserEvent::AudioChanged(playing)) => {
                 policy.on_audio_changed(playing);
+            }
+            #[cfg(feature = "adblock")]
+            Event::UserEvent(UserEvent::AdState(is_ad)) => {
+                adguard.on_state(is_ad, &webview);
             }
             _ => {}
         }
@@ -695,7 +795,15 @@ fn run() -> Result<(), Box<dyn Error>> {
         if !no_trim {
             policy.tick(&webview, Some(&bar));
         }
-        if let Some(deadline) = policy.next_deadline() {
+        #[cfg(feature = "adblock")]
+        adguard.tick(&webview);
+        #[allow(unused_mut)]
+        let mut deadline = policy.next_deadline();
+        #[cfg(feature = "adblock")]
+        if let Some(ad_due) = adguard.next_deadline() {
+            deadline = Some(deadline.map_or(ad_due, |policy_due| policy_due.min(ad_due)));
+        }
+        if let Some(deadline) = deadline {
             *control_flow = ControlFlow::WaitUntil(deadline);
         }
     });
@@ -820,6 +928,76 @@ fn read_playing(core: &ICoreWebView2_8) -> Option<bool> {
     let mut playing = windows::core::BOOL::default();
     unsafe { core.IsDocumentPlayingAudio(&mut playing) }.ok()?;
     Some(playing.as_bool())
+}
+
+#[cfg(feature = "adblock")]
+fn watch_adblock(
+    webview: &WebView,
+    proxy: EventLoopProxy<UserEvent>,
+) -> Result<(), Box<dyn Error>> {
+    let core: ICoreWebView2 = webview.webview().cast()?;
+    let handler_proxy = proxy.clone();
+    let handler = DocumentTitleChangedEventHandler::create(Box::new(
+        move |sender: Option<ICoreWebView2>, _args: Option<windows::core::IUnknown>| {
+            if let Some(sender) = sender {
+                if let Some(title) = read_title(&sender) {
+                    let _ = handler_proxy.send_event(UserEvent::AdState(title_is_ad(&title)));
+                }
+            }
+            Ok(())
+        },
+    ));
+    let mut token = 0i64;
+    unsafe {
+        core.add_DocumentTitleChanged(&handler, &mut token)?;
+    }
+    if let Some(title) = read_title(&core) {
+        let _ = proxy.send_event(UserEvent::AdState(title_is_ad(&title)));
+    }
+    log(format!("adblock_watch_ready token={token}"));
+    Ok(())
+}
+
+#[cfg(feature = "adblock")]
+fn read_title(core: &ICoreWebView2) -> Option<String> {
+    let mut title = windows::core::PWSTR::null();
+    unsafe { core.DocumentTitle(&mut title) }.ok()?;
+    Some(take_pwstr(title))
+}
+
+#[cfg(feature = "adblock")]
+fn set_muted(webview: &WebView, muted: bool) -> bool {
+    let core = match webview.webview().cast::<ICoreWebView2_8>() {
+        Ok(core) => core,
+        Err(error) => {
+            log(format!("adblock_mute_error muted={muted} error={error}"));
+            return false;
+        }
+    };
+    match unsafe { core.SetIsMuted(muted) } {
+        Ok(()) => true,
+        Err(error) => {
+            log(format!("adblock_mute_error muted={muted} error={error}"));
+            false
+        }
+    }
+}
+
+#[cfg(feature = "adblock")]
+fn title_is_ad(title: &str) -> bool {
+    let trimmed = title.trim();
+    if trimmed.is_empty() {
+        return false;
+    }
+    let lower = trimmed.to_lowercase();
+    if lower == "advertisement" {
+        return true;
+    }
+    lower
+        .rsplit(['-', '\u{2013}', '\u{2014}', '\u{2022}', '\u{00b7}', '|'])
+        .next()
+        .map(str::trim)
+        .is_some_and(|segment| segment == "advertisement")
 }
 
 #[cfg(feature = "ublock")]
@@ -1233,4 +1411,30 @@ fn log(message: impl AsRef<str>) {
     }
     #[cfg(debug_assertions)]
     eprintln!("[{elapsed:>7} ms] {}", message.as_ref());
+}
+
+#[cfg(all(test, feature = "adblock"))]
+mod adblock_tests {
+    use super::title_is_ad;
+
+    #[test]
+    fn detects_plain_advertisement() {
+        assert!(title_is_ad("Advertisement"));
+        assert!(title_is_ad("  Advertisement  "));
+    }
+
+    #[test]
+    fn detects_advertisement_suffix() {
+        assert!(title_is_ad("Spotify - Advertisement"));
+        assert!(title_is_ad("Spotify \u{2013} Advertisement"));
+        assert!(title_is_ad("Spotify \u{2022} Advertisement"));
+    }
+
+    #[test]
+    fn ignores_track_titles() {
+        assert!(!title_is_ad(""));
+        assert!(!title_is_ad("Spotify"));
+        assert!(!title_is_ad("Advertisement - Spotify"));
+        assert!(!title_is_ad("Track - Artist"));
+    }
 }
